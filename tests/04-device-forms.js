@@ -116,6 +116,12 @@ setTimeout(() => {
       !!d.querySelector('#device-console [data-d="camside"]'));
     DEV.cutout = 'none'; DEV.camSide = 'screen'; DEV.form = 'phone'; NM.applyDevice();
     ck('无挖孔时 cameraCutout 同步为 false', S.settings.cameraCutout === false);
+    /* 灵动岛是实体挖孔：舱内不显示文字，提示走顶部轻提示 */
+    DEV.cutout = 'island'; DEV.camSide = 'screen'; NM.applyDevice();
+    NM.island('测试提示', 800);
+    ck('灵动岛舱内无文字且改为轻提示', !d.getElementById('island-text').textContent &&
+      !!d.querySelector('#banner-host .sb-toast'));
+    DEV.cutout = 'none'; NM.applyDevice();
   });
 
   safe('折叠屏选项仅折叠形态展示', () => {

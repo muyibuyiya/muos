@@ -443,10 +443,30 @@
     }
     /* 通知 / 控制中心展开时不让超级岛浮在面板上方 */
     if (NM.S.shade) { el.classList.add('quiet'); return; }
+    /* 灵动岛是实体挖孔：舱内不显示任何文字，提示改用顶部轻提示条 */
+    if (document.documentElement.getAttribute('data-cam') === 'island' &&
+        document.documentElement.getAttribute('data-cam-side') === 'screen') {
+      t.textContent = '';
+      el.classList.add('quiet');
+      NM.sbToast(text, ms);
+      return;
+    }
     t.textContent = text;
     el.classList.remove('quiet');
     el.classList.toggle('wide', String(text).length > 8);
     NM.S.islandTimer = setTimeout(function () { el.classList.add('quiet'); }, ms || 2000);
+  };
+  /* 顶部轻提示（灵动岛模式下替代岛内文字） */
+  NM.sbToast = function (text, ms) {
+    var host = $('#banner-host'); if (!host) return;
+    var d = document.createElement('div');
+    d.className = 'banner sb-toast';
+    d.innerHTML = '<div class="n-main"><b>' + esc(text) + '</b></div>';
+    host.appendChild(d);
+    setTimeout(function () {
+      d.classList.add('out');
+      setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); }, 320);
+    }, ms || 1400);
   };
 
   /* ---------------- 系统对话框 ---------------- */

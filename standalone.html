@@ -212,11 +212,19 @@ html[data-form="phone"] .sb-inner, html[data-form="flip"] .sb-inner { padding-to
 html[data-sb="dark"] .sb-inner { color: #14182b; text-shadow: 0 1px 2px rgba(255,255,255,.55); }
 html[data-sb="light"] .sb-inner { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.35); }
 html[data-cutout="1"] .sb-inner { color: #fff !important; }
-.sb-icons { display: flex; align-items: center; gap: 5px; }
+.sb-icons { display: flex; align-items: center; gap: 5px; max-width: calc(50% - 30px); overflow: hidden; }
 .sb-icons svg { width: 16px; height: 16px; vertical-align: -3px; }
-/* 新状态栏图标（PNG 透明底）：高度对齐文字，宽度自适应 */
-.sb-icons .sb-ico { width: auto; height: 16px; max-width: 26px; object-fit: contain; vertical-align: -3px; }
-.battery-wrap .sb-ico { height: 14px; max-width: 24px; }
+/* 新状态栏图标（PNG 透明底）：全部统一 18×18 视觉盒，按比例内缩 */
+.sb-icons .sb-ico { width: 18px; height: 18px; object-fit: contain; vertical-align: -3px; }
+.battery-wrap .sb-ico { width: 26px; height: 18px; object-fit: contain; }
+/* 电量数字嵌在电池图标内部（实心电池 → 反色文字） */
+.battery-chip { position: relative; display: inline-flex; align-items: center; }
+.battery-chip b { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: grid; place-items: center;
+  font-size: 8px; font-weight: 700; letter-spacing: -.3px; color: #14182b; pointer-events: none; }
+html[data-sb="dark"] .battery-chip b { color: #fff; }
+/* 顶部轻提示（灵动岛相机模式下替代岛内文字） */
+.banner.sb-toast { padding: 9px 16px; justify-content: center; }
+.banner.sb-toast .n-main b { text-align: center; }
 .battery-wrap { display: inline-flex; align-items: center; gap: 3px; }
 .battery-box { width: 22px; height: 11px; border: 1.4px solid currentColor; border-radius: 3px; position: relative; padding: 1.5px; }
 .battery-box::after { content:''; position: absolute; right: -3.5px; top: 3px; width: 2px; height: 5px; background: currentColor; border-radius: 0 2px 2px 0; }
@@ -1234,9 +1242,10 @@ html[data-cutout="1"] #statusbar { background: transparent; }
 #cam-cutout { position: absolute; top: 0; left: 50%; transform: translateX(-50%);
   z-index: 53; background: #000; display: none; pointer-events: none; }
 html[data-cam="hole"] #cam-cutout { display: block; width: 14px; height: 14px; border-radius: 50%; top: 11px; }
-/* 灵动岛形态：#island 本身就是摄像头舱 —— 即使无消息也保持可见的黑色药丸 */
+/* 灵动岛形态：#island 本身就是摄像头舱 —— 固定尺寸、不含任何文字 */
 html[data-cam="island"] #cam-cutout { display: none; }
-html[data-cam="island"][data-cam-side="screen"] #island { min-width: 118px; display: flex !important; }
+html[data-cam="island"][data-cam-side="screen"] #island { min-width: 118px; max-width: 118px; padding: 0; display: flex !important; }
+html[data-cam="island"][data-cam-side="screen"] #island .island-text { display: none; }
 html[data-cam="island"][data-cam-side="screen"] #island.quiet { opacity: 1; }
 /* 刘海：上下加长（高度 38px）、宽度适中、与机身边框同色；状态栏文字保持原位，靠左右外推避让刘海 */
 html[data-cam="notch"] #cam-cutout {
@@ -2301,10 +2310,30 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
     }
     /* 通知 / 控制中心展开时不让超级岛浮在面板上方 */
     if (NM.S.shade) { el.classList.add('quiet'); return; }
+    /* 灵动岛是实体挖孔：舱内不显示任何文字，提示改用顶部轻提示条 */
+    if (document.documentElement.getAttribute('data-cam') === 'island' &&
+        document.documentElement.getAttribute('data-cam-side') === 'screen') {
+      t.textContent = '';
+      el.classList.add('quiet');
+      NM.sbToast(text, ms);
+      return;
+    }
     t.textContent = text;
     el.classList.remove('quiet');
     el.classList.toggle('wide', String(text).length > 8);
     NM.S.islandTimer = setTimeout(function () { el.classList.add('quiet'); }, ms || 2000);
+  };
+  /* 顶部轻提示（灵动岛模式下替代岛内文字） */
+  NM.sbToast = function (text, ms) {
+    var host = $('#banner-host'); if (!host) return;
+    var d = document.createElement('div');
+    d.className = 'banner sb-toast';
+    d.innerHTML = '<div class="n-main"><b>' + esc(text) + '</b></div>';
+    host.appendChild(d);
+    setTimeout(function () {
+      d.classList.add('out');
+      setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); }, 320);
+    }, ms || 1400);
   };
 
   /* ---------------- 系统对话框 ---------------- */
@@ -2510,21 +2539,29 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
     var st = S.settings, out = '';
     var tone = document.documentElement.getAttribute('data-sb') === 'dark' ? 'b' : 'w';
     function ico(name) { return NM.sicon ? NM.sicon(name, tone) : ''; }
-    if (st.airplane) out += ico('airplane') || NM.svg('airplane', 14);
+    /* 图标避让刘海 / 灵动岛：按剩余宽度决定最多显示几个，优先保留必要信息 */
+    var h = document.documentElement;
+    var cam = h.getAttribute('data-cam') || 'none';
+    var camW = cam === 'notch' ? 150 : cam === 'island' ? 118 : cam === 'hole' ? 134 : 0;
+    var cssW = NM.deviceInfo ? NM.deviceInfo().cssW : 390;
+    var avail = Math.max(66, cssW / 2 - camW / 2 - 34 - 42); /* 半屏 − 摄像头 − 边距 − 时间宽 */
+    var cap = Math.max(1, Math.floor(avail / 21));
+    var opts = [];
+    if (st.airplane) opts.push(ico('airplane') || NM.svg('airplane', 14));
     else {
-      if (st.cellular) out += ico('signal') || NM.svg('signal', 14);
-      if (st.wifi) out += ico('wifi') || NM.svg('wifi', 14);
+      if (st.cellular) opts.push(ico('signal') || NM.svg('signal', 14));
+      if (st.wifi) opts.push(ico('wifi') || NM.svg('wifi', 14));
     }
-    if (st.bluetooth && !st.airplane) out += ico('bt') || NM.svg('bluetooth', 13);
-    var hasAlarm = (S.data.alarms || []).some(function (a) { return a.on; });
-    if (hasAlarm) out += ico('alarm');
-    if (st.dnd) out += ico('dnd') || NM.svg('moon', 13);
-    if (st.torch) out += ico('torch') || NM.svg('torch', 13);
-    /* 电池：使用新图标（充电中显示充电图标），百分比数字保留 */
-    out += '<span class="battery-wrap"><span class="sb-batt-num">' + Math.round(S.battery) + '</span>' +
+    if (st.bluetooth && !st.airplane) opts.push(ico('bt') || NM.svg('bluetooth', 13));
+    if ((S.data.alarms || []).some(function (a) { return a.on; })) opts.push(ico('alarm'));
+    if (st.dnd) opts.push(ico('dnd') || NM.svg('moon', 13));
+    if (st.torch) opts.push(ico('torch') || NM.svg('torch', 13));
+    /* 电池始终显示：电量数字嵌在电池图标内部 */
+    out = opts.slice(0, cap).join('') +
+      '<span class="battery-wrap">' +
       (S.charging ? (ico('charging') || '') : '') +
-      (ico('battery') || '<span class="battery-box"><i class="battery-fill" style="width:' +
-        clamp(S.battery, 0, 100) + '%"></i></span>') + '</span>';
+      '<span class="battery-chip">' + (ico('battery') || '') + '<b>' + Math.round(S.battery) + '</b></span>' +
+      '</span>';
     var el = $('#sb-icons'); if (el) el.innerHTML = out;
     document.documentElement.setAttribute('data-charging', S.charging ? '1' : '0');
     document.documentElement.setAttribute('data-lowpower', st.lowpower ? '1' : '0');

@@ -120,6 +120,10 @@ setTimeout(() => {
       NM.renderStatusBarIcons();
       ck('状态栏使用新图标图片', d.querySelectorAll('#sb-icons img.sb-ico').length >= 2,
         String(d.querySelectorAll('#sb-icons img.sb-ico').length));
+      ck('电量数字嵌在电池图标内', (function () {
+        const b = d.querySelector('#sb-icons .battery-chip b');
+        return !!b && b.textContent === String(Math.round(S.battery));
+      })());
       S.settings.hour24 = false;
       NM.tickClock();
       ck('12 小时制生效', d.getElementById('sb-time').textContent.indexOf('午') >= 0);

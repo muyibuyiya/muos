@@ -69,21 +69,29 @@
     var st = S.settings, out = '';
     var tone = document.documentElement.getAttribute('data-sb') === 'dark' ? 'b' : 'w';
     function ico(name) { return NM.sicon ? NM.sicon(name, tone) : ''; }
-    if (st.airplane) out += ico('airplane') || NM.svg('airplane', 14);
+    /* 图标避让刘海 / 灵动岛：按剩余宽度决定最多显示几个，优先保留必要信息 */
+    var h = document.documentElement;
+    var cam = h.getAttribute('data-cam') || 'none';
+    var camW = cam === 'notch' ? 150 : cam === 'island' ? 118 : cam === 'hole' ? 134 : 0;
+    var cssW = NM.deviceInfo ? NM.deviceInfo().cssW : 390;
+    var avail = Math.max(66, cssW / 2 - camW / 2 - 34 - 42); /* 半屏 − 摄像头 − 边距 − 时间宽 */
+    var cap = Math.max(1, Math.floor(avail / 21));
+    var opts = [];
+    if (st.airplane) opts.push(ico('airplane') || NM.svg('airplane', 14));
     else {
-      if (st.cellular) out += ico('signal') || NM.svg('signal', 14);
-      if (st.wifi) out += ico('wifi') || NM.svg('wifi', 14);
+      if (st.cellular) opts.push(ico('signal') || NM.svg('signal', 14));
+      if (st.wifi) opts.push(ico('wifi') || NM.svg('wifi', 14));
     }
-    if (st.bluetooth && !st.airplane) out += ico('bt') || NM.svg('bluetooth', 13);
-    var hasAlarm = (S.data.alarms || []).some(function (a) { return a.on; });
-    if (hasAlarm) out += ico('alarm');
-    if (st.dnd) out += ico('dnd') || NM.svg('moon', 13);
-    if (st.torch) out += ico('torch') || NM.svg('torch', 13);
-    /* 电池：使用新图标（充电中显示充电图标），百分比数字保留 */
-    out += '<span class="battery-wrap"><span class="sb-batt-num">' + Math.round(S.battery) + '</span>' +
+    if (st.bluetooth && !st.airplane) opts.push(ico('bt') || NM.svg('bluetooth', 13));
+    if ((S.data.alarms || []).some(function (a) { return a.on; })) opts.push(ico('alarm'));
+    if (st.dnd) opts.push(ico('dnd') || NM.svg('moon', 13));
+    if (st.torch) opts.push(ico('torch') || NM.svg('torch', 13));
+    /* 电池始终显示：电量数字嵌在电池图标内部 */
+    out = opts.slice(0, cap).join('') +
+      '<span class="battery-wrap">' +
       (S.charging ? (ico('charging') || '') : '') +
-      (ico('battery') || '<span class="battery-box"><i class="battery-fill" style="width:' +
-        clamp(S.battery, 0, 100) + '%"></i></span>') + '</span>';
+      '<span class="battery-chip">' + (ico('battery') || '') + '<b>' + Math.round(S.battery) + '</b></span>' +
+      '</span>';
     var el = $('#sb-icons'); if (el) el.innerHTML = out;
     document.documentElement.setAttribute('data-charging', S.charging ? '1' : '0');
     document.documentElement.setAttribute('data-lowpower', st.lowpower ? '1' : '0');
