@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-form="phone" data-style="hyperos" data-orient="portrait" data-cover="0" data-seam="0">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="description" content="MUOS · 运行在浏览器里的手机操作系统">
+<title>MUOS 1.0 · 浏览器里的移动操作系统</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="stage">
+
+  <div id="device">
+    <!-- 机身右侧实体按键：长按电源键弹关机菜单 -->
+    <div id="side-keys">
+      <button class="side-key sk-vol" data-a="vol-up" title="音量 +"></button>
+      <button class="side-key sk-vol" data-a="vol-down" title="音量 -"></button>
+      <button class="side-key sk-power" data-a="power-key" title="电源键（长按关机）"></button>
+    </div>
+
+    <!-- 屏幕：所有系统层都在这里叠放 -->
+    <div id="display">
+
+      <!-- 前置摄像头区域（形态由外层控制台选择：挖孔 / 灵动岛 / 刘海） -->
+      <div id="cam-cutout" aria-hidden="true"></div>
+      <div id="wallpaper">
+        <span class="orb orb-1"></span>
+        <span class="orb orb-2"></span>
+        <span class="orb orb-3"></span>
+        <span class="grain"></span>
+      </div>
+      <div id="glow-veil"></div>
+      <div id="fx-layer"></div>
+      <div id="dim-veil"></div>
+      <div id="torch-veil"></div>
+      <div id="privacy-veil"></div>
+      <div id="gpu-hud"></div>
+
+      <!-- 锁屏 -->
+      <section id="lock" class="layer">
+        <div class="lock-inner">
+          <div class="lock-weather" id="lock-weather"></div>
+          <div class="lock-time" id="lock-time"></div>
+          <div class="lock-date" id="lock-date"></div>
+          <div class="lock-notifs" id="lock-notifs"></div>
+        </div>
+        <div class="lock-footer">
+          <button class="lock-quick" data-a="toggle-torch" id="lock-torch" aria-label="手电筒"></button>
+          <button class="lock-quick" data-a="lock-camera" aria-label="相机"></button>
+        </div>
+        <div class="lock-hint" id="lock-hint">上滑解锁</div>
+        <div id="now-bar"></div>
+      </section>
+
+      <!-- PIN 解锁页 -->
+      <section id="pin" class="layer">
+        <div class="pin-ui">
+          <div class="pin-title" id="pin-title">输入密码</div>
+          <div class="pin-dots" id="pin-dots"></div>
+          <div class="pin-pad" id="pin-pad"></div>
+          <button class="pin-cancel" data-a="pin-cancel">取消</button>
+        </div>
+      </section>
+
+      <!-- 主屏幕 -->
+      <section id="home" class="layer">
+        <div class="home-scroll" id="home-scroll">
+          <div class="widget" id="home-widget"></div>
+          <div class="pages-viewport" id="pages-viewport">
+            <div class="pages-track" id="pages-track"></div>
+          </div>
+        </div>
+        <!-- 页码指示条：绝对定位在 Dock 上方固定距离，图标多少都不会跑到屏幕中间 -->
+        <div class="page-dots" id="page-dots"></div>
+        <div class="search-pill" id="search-pill" data-a="open-spotlight"></div>
+        <div class="dock" id="dock"></div>
+      </section>
+
+      <!-- 全局搜索（主屏下拉） -->
+      <section id="spotlight" class="layer">
+        <div class="spot-head">
+          <input id="spot-input" data-f="spot-q" type="text" placeholder="搜索应用、备忘录、文件" autocomplete="off">
+          <button data-a="close-spotlight">取消</button>
+        </div>
+        <div class="spot-body" id="spot-body"></div>
+      </section>
+
+      <!-- 桌面布局编辑器：长按主屏进入 -->
+      <section id="home-editor" class="layer overlay"></section>
+
+      <!-- 应用抽屉：主屏上滑打开 -->
+      <section id="app-drawer" class="layer"></section>
+
+      <!-- 边缘面板：设置里开启后从右缘滑出 -->
+      <div id="edge-panel"></div>
+
+      <!-- 应用宿主：后台应用的 DOM 一直保留，切后台不销毁 -->
+      <div id="app-host"><div id="app-views"></div></div>
+
+      <!-- 多任务：卡片里直接放后台应用的实时 DOM -->
+      <section id="recents" class="layer">
+        <div class="recent-title">最近使用的应用</div>
+        <div class="recent-track" id="recent-track"></div>
+        <div class="recent-empty" id="recent-empty">暂无最近使用的应用</div>
+      </section>
+
+      <!-- 通知中心 -->
+      <section id="notification-shade" class="shade">
+        <div class="shade-inner">
+          <div class="shade-head"><span id="notif-date"></span><span>通知中心</span></div>
+          <div class="notif-list" id="notif-list"></div>
+          <button class="clear-all" data-a="clear-notifs">清除全部通知</button>
+        </div>
+      </section>
+
+      <!-- 控制中心 -->
+      <section id="control-shade" class="shade">
+        <div class="shade-inner">
+          <div class="shade-head"><span id="ctrl-date"></span><span>控制中心</span></div>
+          <div class="ctrl-grid" id="ctrl-grid"></div>
+          <div class="ctrl-sliders">
+            <div class="slider-row" id="brightness-row"></div>
+            <div class="slider-row" id="volume-row"></div>
+          </div>
+          <div class="ctrl-now" id="ctrl-now"></div>
+          <div class="ctrl-foot">
+            <button data-a="open-settings">系统设置</button>
+            <button data-a="open-recents">多任务</button>
+            <button data-a="power-menu">电源</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 横幅通知 -->
+      <div id="banner-host"></div>
+
+      <!-- 状态栏：左半边下拉通知，右半边下拉控制中心 -->
+      <header id="statusbar">
+        <div class="sb-zone" id="sb-zone-left" data-a="open-notifications"></div>
+        <div class="sb-zone" id="sb-zone-right" data-a="open-control"></div>
+        <div class="sb-inner">
+          <span class="sb-time" id="sb-time"></span>
+          <span class="sb-brand" id="sb-brand" style="display:none"></span>
+          <span class="sb-icons" id="sb-icons"></span>
+        </div>
+      </header>
+
+      <!-- 灵动岛：来电、充电、静音等系统事件 -->
+      <div id="island"><span class="island-cam"></span><span class="island-text" id="island-text"></span></div>
+
+      <!-- 导航区：全面屏手势条 / 经典三键 -->
+      <div id="navbar"></div>
+      <div id="home-indicator" data-a="home-click"></div>
+
+      <!-- 电源菜单 -->
+      <section id="power-menu" class="layer overlay">
+        <div class="power-card">
+          <div class="power-title">关机 / 重启</div>
+          <div class="power-slider" id="power-slider"><span>滑动来关机</span></div>
+          <button class="power-btn" data-a="reboot">重新启动</button>
+          <button class="power-btn" data-a="close-power">取消</button>
+        </div>
+      </section>
+
+      <!-- 息屏 / 关机黑屏 -->
+      <section id="off" class="layer off-layer"></section>
+
+      <!-- 开机动画 -->
+      <section id="boot" class="layer boot-layer">
+        <div class="boot-logo"><div class="boot-mark"></div></div>
+        <div class="boot-name">MUOS</div>
+        <div class="boot-spin"></div>
+      </section>
+
+      <!-- 外屏：折叠屏 / 小折叠合盖时的 Cover Screen（由外层设备控制台控制显隐与内容） -->
+      <section id="cover-panel">
+        <div class="cp-status"><span data-cp="brand">MUOS FOLD</span><span data-cp="bat">86%</span></div>
+        <div class="cp-clock"><b data-cp="time">09:41</b><small data-cp="date">—</small></div>
+        <div class="cp-widget"><span data-cp="notif">0 条通知</span><span data-cp="screen">外屏</span></div>
+        <div class="cp-actions">
+          <button data-cp="torch">手电筒</button>
+          <button data-cp="camera">相机</button>
+        </div>
+        <div class="cp-hint">合盖使用外屏 · 在左侧设备控制台切回内屏</div>
+      </section>
+
+      <!-- 系统弹窗（低电量、权限等） -->
+      <section id="dialog" class="layer overlay">
+        <div class="sys-dialog" id="sys-dialog"></div>
+      </section>
+    </div>
+  </div>
+
+  <div id="stage-hint">
+    <strong>MUOS 1.0 · 浏览器里的完整手机系统</strong>
+    <span>底部上滑回主屏 · 上滑停顿进多任务 · 中屏上滑打开应用抽屉 · 长按桌面进入布局编辑 · 左边缘右滑返回 · 顶部左/右下拉通知与控制中心 · 锁屏左滑进相机</span>
+    <small>左侧控制台可切换平板竖向/横向、折叠屏内屏/外屏，并带音量 +/− 与电源键（短按息屏、长按关机）。设备形态与屏幕参数只在控制台设置，模拟系统内只做只读展示。纯前端模拟，不访问摄像头、通讯录或任何真实数据。</small>
+  </div>
+</div>
+
+<script src="js/00-core.js"></script>
+<script src="js/10-system.js"></script>
+<script src="js/20-apps.js"></script>
+<script src="js/30-more-apps.js"></script>
+<script src="js/35-native-apps.js"></script>
+<script src="js/40-settings.js"></script>
+<script src="js/45-device.js"></script>
+<script src="js/50-home.js"></script>
+<script src="js/60-motion.js"></script>
+<script src="js/90-boot.js"></script>
+</body>
+</html>
