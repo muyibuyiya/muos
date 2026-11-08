@@ -1059,10 +1059,12 @@ html[data-form="flip"] .app-icon .ic-box { width: 52px; height: 52px; }
 #wallpaper { transition: transform .45s cubic-bezier(.2,.8,.2,1), filter .45s cubic-bezier(.2,.8,.2,1); }
 html[data-editing="1"] #wallpaper { transform: scale(1.07); filter: blur(16px) brightness(.72); }
 html[data-editing="1"] #dock { display: none; }
+/* 编辑模式隐藏状态栏与超级岛，原位置右侧放「完成」按钮 */
+html[data-editing="1"] #statusbar, html[data-editing="1"] #island { display: none; }
 /* 编辑模式给图标网格顶部留出「−」按钮空间，避免左上角移除钮被视口裁切 */
 html[data-editing="1"] .pages-viewport { padding-top: 9px; }
 #home-editor { z-index: 46; padding: 0; overflow: hidden; background: transparent; backdrop-filter: none; pointer-events: none; }
-.ed-topbar { position: absolute; top: 56px; right: 14px; pointer-events: auto; }
+.ed-topbar { position: absolute; top: 12px; right: 14px; pointer-events: auto; }
 .ed-topbar button { padding: 9px 20px; border-radius: 15px; font-size: 12px; color: #fff;
   background: rgba(18,20,30,.66); backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,.18); }
 .ed-hint { position: absolute; left: 0; right: 0; bottom: 106px; text-align: center; font-size: 10px;
