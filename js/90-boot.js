@@ -211,6 +211,12 @@
     bar.style.transform = ''; bar.style.opacity = '';
     setTimeout(function () { bar.style.transition = ''; }, 180);
   }
+  /* 小横条手势动作（可在 设置 → 系统导航与小横条 中配置） */
+  function indAction(a) {
+    if (a === 'recents') NM.openRecents();
+    else if (a === 'home') NM.goHome();
+    /* 'none'：不做任何事 */
+  }
   function local(cx, cy) {
     return NM.localPoint ? NM.localPoint(cx, cy) : { x: cx, y: cy, scale: 1 };
   }
@@ -299,15 +305,20 @@
         if (dy < -38) {
           if (S.screen === 'lock') NM.beginUnlock();
           else if (S.screen === 'off') NM.wake();
-          else if (dt > 1000) NM.openRecents();   /* 上滑拖住满 1 秒 → 多任务 */
-          else NM.goHome();                        /* 快速 / 大幅上滑 → 主界面 */
+          else {
+            /* 手势动作可配置：未达停顿时间 → 快速上滑动作；超过 → 停顿动作 */
+            var holdMs = clamp(+S.settings.indHoldMs || 1000, 100, 1000);
+            indAction(dt > holdMs ? (S.settings.indUpHoldAction || 'recents') : (S.settings.indUpAction || 'home'));
+          }
         } else if (dy > 38 && Math.abs(dx) < 60) {
-          /* 小横条下滑：通知 / 控制中心展开时收起，否则回到桌面 */
-          if (S.shade) NM.hideShade();
-          else if (S.screen !== 'home') NM.goHome();
+          var da = S.settings.indDownAction || 'shade';
+          if (da === 'none') { /* 不响应 */ }
+          else { if (S.shade) NM.hideShade(); else if (S.screen !== 'home') NM.goHome(); }
         } else if (Math.abs(dx) > 40 && Math.abs(dy) < 70 && S.screen === 'app') {
-          /* 小横条左右滑：在最近应用间快捷切换（dx<0 = 下一个），可在设置中关闭 */
-          if (S.settings.indSwitch !== false) NM.quickSwitch(dx < 0 ? 1 : -1);
+          /* 小横条左右滑：在最近应用间快捷切换（dx<0 = 下一个），动作可配置 */
+          if ((S.settings.indSideAction || (S.settings.indSwitch === false ? 'none' : 'switch')) === 'switch') {
+            NM.quickSwitch(dx < 0 ? 1 : -1);
+          }
         }
         break;
       case 'lock':

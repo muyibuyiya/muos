@@ -86,7 +86,13 @@ setTimeout(() => {
       NM.pop('settings');
       NM.push('settings', 'homeSettings');
       ck('主屏幕设置含导航与小横条入口', d.getElementById('view-settings').textContent.indexOf('系统导航与小横条') >= 0);
-      NM.pop('settings');
+      ck('主屏幕设置含多任务界面布局', d.getElementById('view-settings').textContent.indexOf('多任务界面布局') >= 0);
+      NM.push('settings', 'navDetail');
+      const navTxt = d.getElementById('view-settings').textContent;
+      ck('小横条手势动作可配置', navTxt.indexOf('快速上滑') >= 0 && navTxt.indexOf('上滑停顿') >= 0 &&
+        navTxt.indexOf('左右滑') >= 0);
+      ck('停顿时间 100ms 档位', navTxt.indexOf('0.1 秒') >= 0 && navTxt.indexOf('1 秒') >= 0);
+      NM.pop('settings'); NM.pop('settings');
       NM.push('settings', 'themes');
       d.querySelector('#view-settings [data-a="set-act"][data-v="theme-pick|default"]').click();
       console.log('DBG theme=' + S.settings.theme + ' attr=' + d.documentElement.getAttribute('data-theme') +

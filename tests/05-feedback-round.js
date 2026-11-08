@@ -155,15 +155,13 @@ setTimeout(async () => {
     NM.goHome();
     NM.openRecents();
     ck('进入多任务界面', S.screen === 'recents', S.screen);
-    ck('布局切换按钮 3 个', d.querySelectorAll('.recent-modes [data-a="recent-layout"]').length === 3);
-    d.querySelector('.recent-modes [data-a="recent-layout"][data-v="stack"]').click();
-    ck('堆叠布局生效', d.getElementById('recent-track').classList.contains('stack') &&
-      S.settings.recentLayout === 'stack', S.settings.recentLayout);
-    d.querySelector('.recent-modes [data-a="recent-layout"][data-v="grid"]').click();
-    ck('瀑布布局生效', d.getElementById('recent-track').classList.contains('grid'), S.settings.recentLayout);
-    d.querySelector('.recent-modes [data-a="recent-layout"][data-v="h"]').click();
-    ck('切回水平布局', d.getElementById('recent-track').classList.contains('recent-track') &&
-      !d.getElementById('recent-track').classList.contains('grid'), S.settings.recentLayout);
+    ck('多任务页不再内嵌布局切换', !d.querySelector('.recent-modes'));
+    S.settings.recentLayout = 'stack'; NM.openRecents();
+    ck('堆叠布局生效', d.getElementById('recent-track').classList.contains('stack'));
+    S.settings.recentLayout = 'grid'; NM.openRecents();
+    ck('瀑布布局生效', d.getElementById('recent-track').classList.contains('grid'));
+    S.settings.recentLayout = 'h'; NM.openRecents();
+    ck('水平布局生效', !d.getElementById('recent-track').classList.contains('grid'));
     d.getElementById('recents').click();
     ck('点击空白退出多任务', S.screen !== 'recents', S.screen);
     ck('退出后回到主屏', S.screen === 'home', S.screen);
@@ -265,7 +263,7 @@ setTimeout(async () => {
     NM.setPage('settings', 'navDetail');
     const nav = d.querySelector('#view-settings').textContent;
     ck('小横条自定义设置存在', nav.indexOf('小横条样式') >= 0 &&
-      nav.indexOf('随背景取色') >= 0 && nav.indexOf('左右滑切换应用') >= 0);
+      nav.indexOf('随背景取色') >= 0 && nav.indexOf('快速上滑') >= 0 && nav.indexOf('左右滑') >= 0);
   });
 
   /* ---------- 5.12 顶栏返回按钮规则 + 横幅左右滑消除 ---------- */

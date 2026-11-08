@@ -200,6 +200,8 @@
         O('3x3', '3 × 3'), O('4x4', '4 × 4')]),
       T('大小文件夹', '把 2×2 文件夹放大为桌面主入口', 'bigFolder'),
       T('小部件堆叠', '同位置多个小组件左右滑动切换', 'widgetStack'),
+      SEG('多任务界面布局', '最近任务页的排列方式', 'recentLayout', [
+        O('h', '水平'), O('stack', '堆叠'), O('grid', '瀑布')]),
       H('手势'),
       NAV('系统导航与小横条', '小横条 / 三大键 / 隐藏 · 小横条外观与功能', 'navDetail'),
       T('在主屏幕向下滑动打开搜索', '关闭后下滑改为打开通知面板（真机默认行为）', 'swipeSearch'),
@@ -433,19 +435,32 @@
   var SUBPAGES = {
     /* 系统导航：三种显示方式 + 桌面搜索框 + 快捷任务入口 */
     navDetail: function (v) {
+      var holdOpts = [];
+      for (var ms = 100; ms <= 1000; ms += 100) {
+        holdOpts.push(O(ms, (ms === 1000 ? '1 秒' : (ms / 1000).toFixed(1) + ' 秒')));
+      }
       return rowsHtml([
         H('系统导航方式'),
         SEG('导航栏显示', '小横条＝全面屏手势；三键＝经典导航；不显示＝纯净全屏（手势仍可用）', 'nav', [
           O('gesture', '小横条'), O('buttons', '三键'), O('none', '不显示')]),
+        H('小横条手势 · 动作'),
+        SEL('快速上滑', '短距离上滑（未达到停顿时间）', 'indUpAction', [
+          O('home', '回主屏'), O('recents', '多任务'), O('none', '无')]),
+        SEL('上滑停顿', '拖住小横条达到设定时间后松手', 'indUpHoldAction', [
+          O('recents', '多任务'), O('home', '回主屏'), O('none', '无')]),
+        SEL('停顿判定时间', '拖住多久算「停顿」触发，100ms 档位可调', 'indHoldMs', holdOpts),
+        SEL('下滑', '小横条向下滑', 'indDownAction', [
+          O('shade', '收起面板 / 回桌面'), O('home', '回桌面'), O('none', '无')]),
+        SEL('左右滑', '小横条左右滑动', 'indSideAction', [
+          O('switch', '切换最近应用'), O('none', '无')]),
+        H('小横条外观'),
+        SEL('小横条样式', '底部手势条的长度外观', 'indStyle', [
+          O('short', '短款'), O('classic', '标准'), O('long', '加长')]),
+        T('随背景取色', '浅色界面自动变深，深色界面保持白色', 'indTint'),
         H('主屏幕手势'),
         T('在主屏幕向下滑动打开搜索', '关闭后下滑改为打开通知面板', 'swipeSearch'),
         T('上滑打开应用抽屉', '在主屏中部上滑查看全部应用', 'swipeUpDrawer'),
         T('显示桌面搜索框', '桌面底部的搜索胶囊', 'showSearchPill'),
-        H('小横条'),
-        SEL('小横条样式', '底部手势条的长度外观', 'indStyle', [
-          O('short', '短款'), O('classic', '标准'), O('long', '加长')]),
-        T('随背景取色', '浅色界面自动变深，深色界面保持白色', 'indTint'),
-        T('左右滑切换应用', '在小横条上左右滑动切换最近应用', 'indSwitch'),
         H('设置首页快捷任务'),
         T('显示「你想做什么？」', '整块隐藏后仍可从下面的自定义页恢复', 'showTasks'),
         SEG('默认状态', '收起时只保留一行摘要', 'taskFolded', [O(false, '展开'), O(true, '收起')]),

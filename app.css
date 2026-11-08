@@ -206,9 +206,9 @@ html[data-sb="light"] .sb-inner { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0
 html[data-cutout="1"] .sb-inner { color: #fff !important; }
 .sb-icons { display: flex; align-items: center; gap: 5px; max-width: calc(50% - 30px); overflow: hidden; }
 .sb-icons svg { width: 16px; height: 16px; vertical-align: -3px; }
-/* 新状态栏图标（PNG 透明底）：全部统一 18×18 视觉盒，按比例内缩 */
-.sb-icons .sb-ico { width: 18px; height: 18px; object-fit: contain; vertical-align: -3px; }
-.battery-wrap .sb-ico { width: 26px; height: 18px; object-fit: contain; }
+/* 新状态栏图标（PNG 透明底）：统一 16×16 视觉盒，稍小更贴近真机 */
+.sb-icons .sb-ico { width: 16px; height: 16px; object-fit: contain; vertical-align: -3px; }
+.battery-wrap .sb-ico { width: 23px; height: 16px; object-fit: contain; }
 /* 电量数字嵌在电池图标内部（实心电池 → 反色文字） */
 .battery-chip { position: relative; display: inline-flex; align-items: center; }
 .battery-chip b { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: grid; place-items: center;
@@ -855,6 +855,8 @@ html[data-theme="light"] #lock::before { content: ""; position: absolute; inset:
 .recent-window .app-view { width: var(--pw); height: var(--ph); transform: scale(var(--snap-scale)); }
 .sb-brand { font-size: 9px; letter-spacing: 1px; padding: 1px 5px; border-radius: 5px;
   background: rgba(255,255,255,.16); opacity: .8; }
+/* 窄幅外屏（330px）空间紧张：隐藏品牌角标，给时间与图标让位 */
+html[data-cover="1"] .sb-brand { display: none !important; }
 
 html[data-form="pad"] #device { box-shadow: 0 0 0 2px #05060a, 0 40px 100px rgba(0,0,0,.65), inset 0 0 2px rgba(255,255,255,.35); }
 html[data-form="pad"] .home-scroll { bottom: 128px; }
@@ -1232,7 +1234,7 @@ html[data-cutout="1"] #statusbar { background: transparent; }
 
 /* 前置摄像头区域：形态与位置由外层控制台选择，系统内只读展示 */
 #cam-cutout { position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-  z-index: 53; background: #000; display: none; pointer-events: none; }
+  z-index: 72; background: #000; display: none; pointer-events: none; } /* 高于息屏层，熄屏/AOD 下刘海仍可见 */
 html[data-cam="hole"] #cam-cutout { display: block; width: 14px; height: 14px; border-radius: 50%; top: 11px; }
 /* 灵动岛形态：#island 本身就是摄像头舱 —— 固定尺寸、不含任何文字 */
 html[data-cam="island"] #cam-cutout { display: none; }

@@ -69,18 +69,19 @@
     var st = S.settings, out = '';
     var tone = document.documentElement.getAttribute('data-sb') === 'dark' ? 'b' : 'w';
     function ico(name) { return NM.sicon ? NM.sicon(name, tone) : ''; }
-    /* 图标避让刘海 / 灵动岛：按剩余宽度决定最多显示几个，优先保留必要信息 */
+    /* 图标避让刘海 / 灵动岛：按剩余宽度决定最多显示几个；
+       优先级：Wi‑Fi > 信号 > 蓝牙 > 闹钟 > 勿扰 > 手电筒，电池永远显示 */
     var h = document.documentElement;
     var cam = h.getAttribute('data-cam') || 'none';
     var camW = cam === 'notch' ? 150 : cam === 'island' ? 118 : cam === 'hole' ? 134 : 0;
     var cssW = NM.deviceInfo ? NM.deviceInfo().cssW : 390;
-    var avail = Math.max(66, cssW / 2 - camW / 2 - 34 - 42); /* 半屏 − 摄像头 − 边距 − 时间宽 */
-    var cap = Math.max(1, Math.floor(avail / 21));
+    var avail = Math.max(50, cssW / 2 - camW / 2 - 38 - 40); /* 半屏 − 摄像头半宽 − 边距 − 时间宽 */
+    var cap = Math.max(1, Math.floor(avail / 19));
     var opts = [];
     if (st.airplane) opts.push(ico('airplane') || NM.svg('airplane', 14));
     else {
-      if (st.cellular) opts.push(ico('signal') || NM.svg('signal', 14));
       if (st.wifi) opts.push(ico('wifi') || NM.svg('wifi', 14));
+      if (st.cellular) opts.push(ico('signal') || NM.svg('signal', 14));
     }
     if (st.bluetooth && !st.airplane) opts.push(ico('bt') || NM.svg('bluetooth', 13));
     if ((S.data.alarms || []).some(function (a) { return a.on; })) opts.push(ico('alarm'));
@@ -416,13 +417,8 @@
   NM.openRecents = function () {
     NM.markInput(); NM.hideShade(); NM.hideForeground();
     var track = $('#recent-track');
-    /* 布局切换：水平 / 堆叠 / 瀑布，随设置持久化 */
+    /* 布局由设置决定（设置 → 主屏幕 → 多任务界面布局），页面内不再提供切换 */
     var lay = S.settings.recentLayout || 'h';
-    var head = document.querySelector('.recent-head');
-    if (head) head.innerHTML = '<span class="recent-title">最近使用的应用</span><span class="recent-modes">' +
-      [['h', '水平'], ['stack', '堆叠'], ['grid', '瀑布']].map(function (m) {
-        return '<button class="' + (lay === m[0] ? 'on' : '') + '" data-a="recent-layout" data-v="' + m[0] + '">' + m[1] + '</button>';
-      }).join('') + '</span>';
     track.className = 'recent-track' + (lay === 'h' ? '' : ' ' + lay);
     track.innerHTML = '';
     $('#recent-empty').style.display = 'none';
