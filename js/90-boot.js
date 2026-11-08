@@ -231,6 +231,8 @@
   }
   display.addEventListener('pointerdown', function (e) {
     if (e.target.closest('input,textarea,[type=range],.side-key')) return;
+    /* 编辑模式下小组件由专属拖动系统接管，不进入全局手势 */
+    if (S.editing && e.target.closest && e.target.closest('.widget-card')) return;
     G.x = e.clientX; G.y = e.clientY; G.t = Date.now();
     /* 机身缩放后必须换算到屏幕内部坐标，否则顶部/边缘手势判定会整体偏移 */
     var p = local(e.clientX, e.clientY);

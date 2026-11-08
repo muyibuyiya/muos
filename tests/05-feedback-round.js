@@ -316,7 +316,7 @@ setTimeout(async () => {
     const trackH = d.documentElement.style.getPropertyValue('--track-h');
     ck('轨道高度按行高计算', parseFloat(trackH) > 0, trackH);
     ck('图标行高变量存在', d.documentElement.style.getPropertyValue('--icon-row-h') === '92px');
-    ck('小组件只在第 0 页渲染', !!d.querySelector('#home-widget'));
+    ck('小组件渲染在第 0 页网格中', !!d.querySelector('#pages-track .app-page:first-child .widget-card'));
     NM.gotoPage(0, true);
     ck('切页后页码条仍存在', !!d.querySelector('#page-dots .page-dot'));
     const dots = d.getElementById('page-dots');

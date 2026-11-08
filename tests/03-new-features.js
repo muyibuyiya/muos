@@ -142,19 +142,27 @@ setTimeout(() => {
       const n0 = S.data.widgets.length;
       d.querySelector('#home-editor [data-a="wd-add"][data-v="battery"]').click();
       ck('小组件已写入数据', S.data.widgets.length === n0 + 1);
-      ck('小组件实时渲染', d.getElementById('home-widget').textContent.indexOf('%') >= 0 || S.settings.widgetStack);
+      ck('小组件实时渲染并带网格占位', (function () {
+        const el = d.querySelector('#pages-track .widget-card');
+        return !!el && (el.getAttribute('style') || '').indexOf('grid-column:') >= 0;
+      })());
       const id = S.data.widgets[S.data.widgets.length - 1].id;
       NM.HOME_SYS['wd-del'](id, null, null);
       ck('小组件可移除', S.data.widgets.length === n0);
     });
-    safe('堆叠 / 页面 / 网格 / 图标', () => {
-      S.data.widgets.push({ id: 't1', type: 'clock', page: 0, span: 2 });
-      S.data.widgets.push({ id: 't2', type: 'health', page: 0, span: 2 });
-      NM.renderWidget();
-      ck('小部件堆叠只显示一个', d.querySelectorAll('#home-widget .widget-card').length === 1);
-      ck('堆叠有切换圆点', d.querySelectorAll('#home-widget .wd-stack-bar i').length >= 2);
-      NM.HOME_SYS['wd-stack'](1, null, null);
-      ck('堆叠可切换', NM.widgetIndex === 1);
+    safe('小组件尺寸 / 页面 / 网格 / 图标', () => {
+      S.data.widgets.push({ id: 't1', type: 'clock', page: 0, col: 0, row: 2, w: 2, h: 2, _placed: 1 });
+      NM.renderPages();
+      ck('小组件占位渲染在网格里', !!d.querySelector('#pages-track .widget-card[data-wd="t1"]'));
+      NM.HOME_SYS['wd-resize']('t1');
+      const t1 = S.data.widgets.filter(function (x) { return x.id === 't1'; })[0];
+      ck('尺寸循环调整（2×2 → 1×2）', t1 && t1.w === 1 && t1.h === 2,
+         t1 && (t1.w + 'x' + t1.h));
+      NM.HOME_SYS['wd-resize']('t1');
+      NM.HOME_SYS['wd-resize']('t1');
+      const t1b = S.data.widgets.filter(function (x) { return x.id === 't1'; })[0];
+      ck('循环回 2×2', t1b && t1b.w === 2 && t1b.h === 2, t1b && (t1b.w + 'x' + t1b.h));
+      NM.HOME_SYS['wd-del']('t1', null, null);
       const p0 = S.data.pageCount || 1;
       NM.HOME_SYS['ed-add-page']();
       ck('可添加桌面页面', S.data.pageCount === p0 + 1);

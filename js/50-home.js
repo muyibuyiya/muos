@@ -91,69 +91,71 @@
   function widgetsOn(page) {
     return (S.data.widgets || []).filter(function (w) { return (w.page || 0) === page; });
   }
-  function widgetCard(w, editing) {
-    var x = live(w.type);
-    return '<div class="widget-card wd-' + w.type + '" data-a="widget-open" data-v="' + x.app + '">' +
+
+  /* ============================================================
+     小组件系统（真实 Launcher 模式）：与图标同网格、自由拖动、多尺寸
+     · 每个小组件占 w×h 个格子，渲染进对应页的 .app-page 网格
+     · 图标自动绕开被占用的格子（CSS Grid 自动避让）
+     · 编辑模式：拖动移动（网格吸附）、右下角按钮循环切换尺寸
+     ============================================================ */
+  var WSIZES = {
+    weather: [[2, 2], [2, 4], [4, 2]],
+    clock: [[2, 2], [1, 2], [1, 4]],
+    battery: [[2, 1], [2, 2], [1, 2]],
+    calendar: [[2, 2], [1, 2], [1, 4]],
+    notes: [[2, 2], [1, 2], [1, 4]],
+    music: [[4, 2], [2, 2]],
+    quick: [[4, 1], [4, 2], [2, 2]],
+    health: [[2, 2], [1, 2], [1, 4]],
+    storage: [[2, 2], [1, 2], [1, 4]],
+    notif: [[2, 2], [1, 2], [1, 4]]
+  };
+  function wdSize(type) { var l = WSIZES[type] || [[2, 2]]; return l[0]; }
+  function isFoldInner() { return !!(NM.deviceInfo && NM.deviceInfo().isFoldInner); }
+
+  /* 某页 (col,row,w,h) 区域是否空闲；折叠内屏的接缝列视为占用 */
+  function areaFree(page, col, row, w, h, ignoreId) {
+    var g = grid();
+    if (col < 0 || row < 0 || col + w > g.cols || row + h > g.rows) return false;
+    var occ = {};
+    if (isFoldInner()) {
+      var half = Math.floor(g.cols / 2);
+      for (var rr = 0; rr < g.rows; rr++) occ[half + ',' + rr] = 1;
+    }
+    widgetsOn(page).forEach(function (wd) {
+      if (ignoreId && wd.id === ignoreId) return;
+      var c0 = wd.col || 0, r0 = wd.row || 0;
+      for (var c = c0; c < c0 + (wd.w || 2); c++)
+        for (var r = r0; r < r0 + (wd.h || 2); r++) occ[c + ',' + r] = 1;
+    });
+    for (var c2 = col; c2 < col + w; c2++)
+      for (var r2 = row; r2 < row + h; r2++) if (occ[c2 + ',' + r2]) return false;
+    return true;
+  }
+  /* 逐行扫描第一个能放下 w×h 的空闲位置 */
+  function freePos(page, w, h, ignoreId) {
+    var g = grid();
+    for (var r = 0; r + h <= g.rows; r++)
+      for (var c = 0; c + w <= g.cols; c++)
+        if (areaFree(page, c, r, w, h, ignoreId)) return { col: c, row: r };
+    return null;
+  }
+
+  function widgetCard(wd) {
+    var x = live(wd.type), w = wd.w || 2, h = wd.h || 2;
+    var wide = w >= 2 && h <= 2 ? ' wide' : '';
+    return '<div class="widget-card' + wide + '" style="grid-column:' + ((wd.col || 0) + 1) + ' / span ' + w +
+      ';grid-row:' + ((wd.row || 0) + 1) + ' / span ' + h + '" data-wd="' + wd.id + '" data-a="widget-open" data-v="' + x.app + '">' +
       '<span class="w-ic" style="background:' + x.c + '">' + svg(x.ic, 23) + '</span>' +
       '<span class="w-main"><span class="w-city">' + esc(x.title) + '</span>' +
       '<span class="w-temp">' + esc(x.big) + '</span><span class="w-desc">' + esc(x.sub) + '</span></span>' +
       '<span class="w-clock">' + (x.right || '') + '</span>' +
-      (editing ? '<button class="wd-del" data-a="wd-del" data-v="' + w.id + '">' + svg('close', 13) + '</button>' : '') +
+      (S.editing
+        ? '<button class="wd-del" data-a="wd-del" data-v="' + wd.id + '" title="移除">' + svg('close', 13) + '</button>' +
+          '<button class="wd-resize" data-a="wd-resize" data-v="' + wd.id + '" title="调整大小">' + svg('grid', 11) + '</button>'
+        : '') +
       '</div>';
   }
-
-  function infoCard(type, app) {
-    var x = live(type);
-    return '<div class="widget-card" data-a="widget-open" data-v="' + app + '">' +
-      '<span class="w-ic" style="background:' + x.c + '">' + svg(x.ic, 23) + '</span>' +
-      '<span class="w-main"><span class="w-city">' + esc(x.title) + '</span>' +
-      '<span class="w-temp">' + esc(x.big) + '</span><span class="w-desc">' + esc(x.sub) + '</span></span>' +
-      '<span class="w-clock">' + (x.right || '') + '</span></div>';
-  }
-
-  /* 小组件按「页」渲染进一条横向轨道，与桌面图标轨道同步横滑。
-     · 每一页都有自己那一屏小组件，翻页时组件跟着页面滑出，不会凭空消失
-     · 轨道高度按所有页里最高的一屏统一设定，图标区永远不会被整体上抬 */
-  function syncWidgetTrack(page, instant) {
-    var t = document.getElementById('widget-track'); if (!t) return;
-    if (instant) t.style.transition = 'none';
-    t.style.transform = 'translateX(' + (-page * 100) + '%)';
-    if (instant && W.requestAnimationFrame) {
-      W.requestAnimationFrame(function () { t.style.transition = ''; });
-    }
-  }
-  NM.renderWidget = function () {
-    var host = $('#home-widget'); if (!host) return;
-    var count = Math.max(1, (S._pages || [[]]).length), editing = !!S.editing;
-    var dev = NM.deviceInfo ? NM.deviceInfo() : { isFoldInner: false, isPad: false };
-    var cells = [], slot = 0;
-    for (var pi = 0; pi < count; pi++) {
-      var list = widgetsOn(pi);
-      var showAll = !S.settings.widgetStack || list.length <= 1;
-      var idx = pi === S.homePage ? clamp(NM.widgetIndex, 0, Math.max(0, list.length - 1)) : 0;
-      var shown = list.length ? (showAll ? list : [list[idx]]) : [];
-      var cards = shown.map(function (w) { return widgetCard(w, editing); });
-      var bar = (!showAll && list.length > 1) ? '<div class="wd-stack-bar">' + list.map(function (w, i) {
-        return '<i class="' + (i === idx ? 'on' : '') + '" data-a="wd-stack" data-v="' + i + '"></i>';
-      }).join('') + '<span>' + (idx + 1) + ' / ' + list.length + ' · 左右滑动切换</span></div>' : '';
-      var inner;
-      if (dev.isFoldInner) {
-        /* 与其他形态同一模型：只渲染用户添加的小组件（不再自动注入电池卡）；
-           折痕是物理结构，只要这一页有组件就分列折痕两侧 */
-        inner = (cards.length
-          ? '<div class="widget-fold">' + (cards[0] || '') + '<span class="fold-seam"></span>' + (cards[1] || '') + '</div>'
-          : '') + bar;
-      } else if (dev.isPad) {
-        inner = '<div class="widget-grid">' + cards.join('') + '</div>' + bar;
-      } else inner = cards.join('') + bar;
-      cells.push('<div class="widget-page" data-wpage="' + pi + '">' + inner + '</div>');
-      var rows = shown.length ? ((dev.isPad || dev.isFoldInner) ? Math.ceil(shown.length / 2) : shown.length) : 0;
-      if (cards.length) slot = Math.max(slot, rows * 92 + (bar ? 16 : 0));
-    }
-    host.style.setProperty('--widget-slot-h', (slot ? Math.max(96, slot) : 0) + 'px');
-    host.innerHTML = '<div class="widget-track" id="widget-track">' + cells.join('') + '</div>';
-    syncWidgetTrack(S.homePage, true);
-  };
 
   /* ============================================================
      二、桌面分页：桌面图标集 + 网格 + 页面数 + 形态栏数
@@ -187,10 +189,21 @@
     var g = grid(), ids = desktopApps();
     var dev = NM.deviceInfo ? NM.deviceInfo() : { isFoldInner: false };
     var pageCount = Math.max(1, S.data.pageCount || 1);
+    /* 迁移旧数据：没有坐标的小组件按默认尺寸自动找空位 */
+    (S.data.widgets || []).forEach(function (wd) {
+      if (wd._placed) return;
+      var sz = wdSize(wd.type);
+      wd.w = Math.min(wd.w || sz[0], g.cols); wd.h = Math.min(wd.h || sz[1], g.rows);
+      var fp = freePos(wd.page || 0, wd.w, wd.h, wd.id);
+      wd.col = fp ? fp.col : 0; wd.row = fp ? fp.row : 0;
+      wd._placed = 1;
+    });
     var pages = [], cursor = 0, p = 0;
-    /* 按每页「网格容量 − 小组件占用」顺序装图标，装不下就自动补页 */
+    /* 按每页「网格容量 − 小组件占用格数」装图标，装不下自动补页 */
     while ((p < pageCount || cursor < ids.length) && p < 12) {
-      var cap = Math.max(1, g.per - widgetsOn(p).length * 2);
+      var cells = 0;
+      widgetsOn(p).forEach(function (wd) { cells += (wd.w || 2) * (wd.h || 2); });
+      var cap = Math.max(1, g.per - cells);
       pages.push(ids.slice(cursor, cursor + cap));
       cursor += cap; p++;
     }
@@ -214,35 +227,28 @@
         NM.iconBox(a, 30) + '<span class="ic-name">' + esc(a.name) + '</span></div>';
     }
     $('#pages-track').innerHTML = pages.map(function (list, pi) {
+      var wds = widgetsOn(pi);
+      var widgetsHtml = wds.map(function (wd) { return widgetCard(wd); }).join('');
       if (dev.isFoldInner) {
-        /* 折叠屏内屏：左右两半各 half 列，中间整列是折痕留空区。
-           图标按「行」分到两半，绝不会有任何应用压在接缝上。 */
-        var half = Math.max(1, Math.floor(g.cols / 2)), L = [], R = [];
-        for (var r = 0; r < g.rows; r++) {
-          var row = list.slice(r * g.cols, (r + 1) * g.cols);
-          L = L.concat(row.slice(0, half));
-          R = R.concat(row.slice(half, g.cols));
-        }
-        return '<div class="app-page fold-split" data-page="' + pi + '" style="--half-cols:' + half + '">' +
-          '<div class="fold-half">' + L.map(icon).join('') + '</div>' +
-          '<span class="fold-seam"></span>' +
-          '<div class="fold-half">' + R.map(icon).join('') + '</div></div>';
+        /* 折叠内屏：网格中缝留一条接缝列（占位符占住），图标与小组件都不会压缝 */
+        var half = Math.max(1, Math.floor(g.cols / 2));
+        return '<div class="app-page fold-grid" data-page="' + pi + '" style="--half-cols:' + half + '">' +
+          '<span class="fold-seam-spacer"></span>' + widgetsHtml + list.map(icon).join('') + '</div>';
       }
-      return '<div class="app-page" data-page="' + pi + '">' + list.map(icon).join('') + '</div>';
+      return '<div class="app-page" data-page="' + pi + '">' + widgetsHtml + list.map(icon).join('') + '</div>';
     }).join('');
     $('#page-dots').innerHTML = pages.map(function (_, i) {
       return '<i class="page-dot ' + (i === S.homePage ? 'on' : '') + '" data-a="goto-page" data-v="' + i + '"></i>';
     }).join('');
-    if (NM.renderWidget) NM.renderWidget();
     NM.gotoPage(S.homePage, true);
     NM.updateBadges();
   };
+  /* 兼容旧调用点（applyDevice / 设置项等）：重渲桌面即同步小组件 */
+  NM.renderWidget = function () { NM.renderPages(); };
 
   var BASE_GOTO = NM.gotoPage;
   NM.gotoPage = function (i, instant) {
     BASE_GOTO(i, instant);
-    /* 小组件轨道与图标轨道一起横滑；不重建 DOM，动画才不会闪一下 */
-    syncWidgetTrack(S.homePage, !!instant);
     if (NM.renderEditor) NM.renderEditor();
   };
 
@@ -446,16 +452,35 @@
     },
     'wd-add': function (type) {
       if (!WIDGETS[type]) return;
+      var sz = wdSize(type);
+      var fp = freePos(S.homePage, sz[0], sz[1]);
+      if (!fp) { NM.island('当前页空间不足 · 请翻页或缩小其他小组件', 1900); return; }
       S.data.widgets = S.data.widgets || [];
-      S.data.widgets.push({ id: NM.util.uid(), type: type, page: S.homePage, span: 2 });
+      S.data.widgets.push({ id: NM.util.uid(), type: type, page: S.homePage,
+        col: fp.col, row: fp.row, w: sz[0], h: sz[1], _placed: 1 });
       S._wdPicker = false;
-      NM.save(); NM.renderPages(); NM.renderWidget(); NM.renderEditor();
-      NM.island('已添加「' + WIDGETS[type] + '」小组件', 1600);
+      NM.save(); NM.renderPages(); NM.renderEditor();
+      NM.island('已添加「' + WIDGETS[type] + '」小组件 ' + sz[0] + '×' + sz[1], 1600);
+    },
+    'wd-resize': function (id) {
+      var wd = (S.data.widgets || []).filter(function (x) { return x.id === id; })[0]; if (!wd) return;
+      var sizes = WSIZES[wd.type] || [[2, 2]];
+      var i = -1;
+      sizes.forEach(function (s, k) { if (s[0] === (wd.w || 2) && s[1] === (wd.h || 2)) i = k; });
+      var oldW = wd.w || 2, oldH = wd.h || 2;
+      var next = sizes[(i + 1) % sizes.length];
+      wd.w = next[0]; wd.h = next[1];
+      if (!areaFree(wd.page, wd.col || 0, wd.row || 0, wd.w, wd.h, wd.id)) {
+        var fp = freePos(wd.page, wd.w, wd.h, wd.id);
+        if (!fp) { wd.w = oldW; wd.h = oldH; NM.renderPages(); NM.island('页面上没有更大空位', 1500); return; }
+        wd.col = fp.col; wd.row = fp.row;
+      }
+      NM.save(); NM.renderPages(); NM.island('小组件 ' + wd.w + '×' + wd.h, 1100);
     },
     'wd-del': function (id, el, e) {
       if (e) e.stopPropagation();
       S.data.widgets = (S.data.widgets || []).filter(function (w) { return w.id !== id; });
-      NM.save(); NM.renderPages(); NM.renderWidget(); NM.renderEditor(); NM.island('小组件已移除', 1400);
+      NM.save(); NM.renderPages(); NM.renderEditor(); NM.island('小组件已移除', 1400);
     },
     'wd-stack': function (i, el, e) {
       if (e) e.stopPropagation();
@@ -526,6 +551,49 @@
     NM.save(); NM.renderPages(); NM.island('已调整图标顺序', 1200);
   });
 
+  /* 编辑模式：小组件自由拖动（网格吸附），拖动结束落点换算为行列 */
+  var wdrag = null;
+  document.addEventListener('pointerdown', function (e) {
+    if (!S.editing || S.screen !== 'home') return;
+    var el = e.target.closest && e.target.closest('.app-page .widget-card');
+    if (!el || (e.target.closest && e.target.closest('[data-a]'))) return;
+    wdrag = { el: el, id: el.getAttribute('data-wd'), x: e.clientX, y: e.clientY, moved: false };
+    NM._widgetDrag = true;
+  });
+  document.addEventListener('pointermove', function (e) {
+    if (!wdrag) return;
+    var dx = e.clientX - wdrag.x, dy = e.clientY - wdrag.y;
+    if (!wdrag.moved && Math.abs(dx) + Math.abs(dy) < 8) return;
+    wdrag.moved = true;
+    wdrag.el.style.transition = 'none';
+    wdrag.el.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(1.03)';
+    wdrag.el.style.zIndex = '6';
+  });
+  document.addEventListener('pointerup', function (e) {
+    if (!wdrag) return;
+    var dx = e.clientX - wdrag.x, dy = e.clientY - wdrag.y;
+    var moved = wdrag.moved, el = wdrag.el, id = wdrag.id;
+    wdrag = null; NM._widgetDrag = false;
+    el.style.transition = ''; el.style.transform = ''; el.style.zIndex = '';
+    if (!moved || Math.abs(dx) + Math.abs(dy) < 8) return;
+    var wd = (S.data.widgets || []).filter(function (x) { return x.id === id; })[0]; if (!wd) return;
+    var s = NM.stageScale ? NM.stageScale() : 1;
+    dx /= s; dy /= s;
+    var g = grid();
+    var cellW = el.offsetWidth / (wd.w || 2), rowH = 92 + 10;
+    if (!cellW) return;
+    var nc = clamp(Math.round((wd.col || 0) + dx / cellW), 0, g.cols - (wd.w || 2));
+    var nr = clamp(Math.round((wd.row || 0) + dy / rowH), 0, g.rows - (wd.h || 2));
+    if (nc === (wd.col || 0) && nr === (wd.row || 0)) return;
+    if (!areaFree(wd.page, nc, nr, wd.w || 2, wd.h || 2, wd.id)) {
+      var fp = freePos(wd.page, wd.w || 2, wd.h || 2, wd.id);
+      if (!fp) { NM.island('目标位置被占用', 1300); return; }
+      nc = fp.col; nr = fp.row;
+    }
+    wd.col = nc; wd.row = nr; NM.save(); NM.renderPages();
+    NM.island('小组件已移动', 1000);
+  });
+
   /* 回主屏 / 启动应用时收起编辑器和抽屉 */
   var BASE_GOHOME = NM.goHome;
   NM.goHome = function () { BASE_GOHOME(); NM.closeHomeEditor(); NM.closeDrawer(); };
@@ -533,20 +601,7 @@
   NM.launchApp = function (id) { NM.closeHomeEditor(); NM.closeDrawer(); return BASE_LAUNCH(id); };
   NM.toggleEditing = function () { S.editing ? NM.closeHomeEditor() : NM.openHomeEditor(); };
 
-  /* 小部件堆叠左右滑动 */
-  var wx = 0;
-  W.document.addEventListener('pointerdown', function (e) {
-    var t = e.target.closest && e.target.closest('#home-widget');
-    wx = t ? e.clientX : 0;
-  });
-  W.document.addEventListener('pointerup', function (e) {
-    if (!wx || !S.settings.widgetStack) { wx = 0; return; }
-    var dx = e.clientX - wx; wx = 0;
-    var list = widgetsOn(S.homePage);
-    if (list.length < 2 || Math.abs(dx) < 45) return;
-    NM.widgetIndex = clamp(NM.widgetIndex + (dx < 0 ? 1 : -1), 0, list.length - 1);
-    NM.renderWidget();
-  });
+  /* 小部件堆叠（旧横条模式）已由网格小组件取代 */
 
   /* 初次渲染（此时 DOM 已就绪） */
   NM.renderEdge();

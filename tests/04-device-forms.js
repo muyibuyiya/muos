@@ -180,22 +180,21 @@ setTimeout(() => {
     NM.DEV.form = 'fold'; NM.DEV.screen = 'main'; NM.DEV.res = 'fold-qhd'; NM.applyDevice();
     const pages = d.querySelectorAll('#pages-track .app-page');
     ck('桌面分页存在', pages.length >= 1);
-    ck('内屏使用 fold-split 双半栅格', pages[0].classList.contains('fold-split'));
-    ck('存在折痕留空列', !!pages[0].querySelector(':scope > .fold-seam'));
-    ck('左右两半各 3 列', pages[0].getAttribute('style').indexOf('--half-cols:3') >= 0,
+    ck('内屏使用 fold-grid 折痕栅格', pages[0].classList.contains('fold-grid'));
+    ck('存在折痕占位列', !!pages[0].querySelector(':scope > .fold-seam-spacer'));
+    ck('左右各留 3 列', pages[0].getAttribute('style').indexOf('--half-cols:3') >= 0,
        pages[0].getAttribute('style'));
-    const halves = pages[0].querySelectorAll(':scope > .fold-half');
-    ck('两半图标总数 = 桌面图标数',
-       halves.length === 2 &&
-       [...halves].reduce((n, h) => n + h.querySelectorAll('.app-icon').length, 0) ===
-       pages[0].querySelectorAll('.app-icon').length);
-    ck('小组件也分列不跨缝', !!d.querySelector('#home-widget .widget-fold > .fold-seam'));
+    ck('小组件并入内屏网格且不占接缝', (function () {
+      const wc = pages[0].querySelector('.widget-card');
+      return !!wc && wc.getAttribute('style').indexOf('span 1') < 0 &&
+        wc.style.gridColumn.indexOf('4') !== 0;
+    })());
   });
 
   safe('平板桌面布局', () => {
     NM.DEV.form = 'pad'; NM.DEV.screen = 'main'; NM.DEV.res = 'pad-qhd';
     NM.DEV.orient = 'portrait'; NM.applyDevice();
-    ck('平板小组件双列网格', !!d.querySelector('#home-widget .widget-grid'));
+    ck('平板小组件并入网格', !!d.querySelector('#pages-track .widget-card'));
     ck('平板 Dock 入口更多', d.querySelectorAll('#dock .app-icon').length >= 8,
        String(d.querySelectorAll('#dock .app-icon').length));
     ck('平板状态栏 PAD 角标', d.getElementById('sb-brand').textContent.indexOf('PAD') >= 0,

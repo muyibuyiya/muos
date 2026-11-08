@@ -193,9 +193,11 @@
   /* ============================================================
      四、主屏：分页、Dock、小组件、编辑模式
      ============================================================ */
+  /* 旧版小组件渲染：仅在 50-home.js 加载前兜底（加载后即被网格版覆盖） */
   NM.renderWidget = function () {
+    var host = $('#home-widget'); if (!host) return;
     var w = NM.weatherNow(), d = new Date();
-    $('#home-widget').innerHTML = '<div class="widget-card" data-a="launch" data-v="weather">' +
+    host.innerHTML = '<div class="widget-card" data-a="launch" data-v="weather">' +
       '<span class="w-ic">' + NM.svg(w.icon, 24) + '</span>' +
       '<span class="w-main"><span class="w-city">北京 · ' + esc(w.desc) + '</span>' +
       '<span class="w-temp">' + w.temp + '°</span><span class="w-desc">最高 ' + w.hi + '° 最低 ' + w.lo + '° · 空气质量优</span></span>' +
