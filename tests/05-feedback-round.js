@@ -42,12 +42,12 @@ setTimeout(async () => {
     ck('控制中心展开时状态栏转白字', d.documentElement.getAttribute('data-sb') === 'light');
     NM.hideShade();
     NM.setScreen('lock');
-    ck('锁屏暗底保持白色状态栏文字', d.documentElement.getAttribute('data-sb') === 'light');
+    ck('浅色主题下锁屏用黑色状态栏文字', d.documentElement.getAttribute('data-sb') === 'dark');
     S.settings.cameraCutout = true; NM.updateStatusBarTone();
-    ck('挖孔黑条强制白字', d.documentElement.getAttribute('data-sb') === 'light');
-    S.settings.cameraCutout = false; S.settings.theme = 'dark'; NM.applySettings();
-    NM.setScreen('home');
-    ck('深色主题保持白字', d.documentElement.getAttribute('data-sb') === 'light');
+    ck('挖孔不再强制白色状态栏', d.documentElement.getAttribute('data-sb') === 'dark');
+    S.settings.theme = 'dark'; NM.applySettings();
+    NM.setScreen('lock');
+    ck('深色主题锁屏保持白色状态栏文字', d.documentElement.getAttribute('data-sb') === 'light');
   });
 
   /* ---------- 2. 页面滚动位置按栈帧保存 ---------- */

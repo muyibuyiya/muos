@@ -44,9 +44,9 @@
   /* ============================================================
      二、状态栏
      ============================================================ */
-  /* 状态栏图标明暗自适应：真机会判断「状态栏底下是什么颜色」。
-     浅色主题下，应用界面是白底 → 深色字；锁屏 / 通知面板是暗底 → 白字。
-     深色主题、挖孔黑条、深色壁纸都强制白字。 */
+/* 状态栏图标明暗自适应：真机会判断「状态栏底下是什么颜色」。
+      浅色主题：白底/浅壁纸 → 深色（黑色）图标，深色壁纸 → 白色图标。
+      锁屏与主屏共用壁纸色调；通知/控制中心遮罩与深色主题强制白色。 */
   var DARK_WALLS = { aurora: 1, sunset: 1, mono: 1 };
   NM.updateStatusBarTone = function () {
     var st = S.settings, h = document.documentElement, dark = false;
@@ -54,9 +54,10 @@
       switch (S.screen) {
         case 'home': dark = !DARK_WALLS[st.wall]; break;
         case 'app': dark = true; break;
-        default: dark = false; /* lock / pin / recents / spotlight / power */
+        case 'lock': case 'pin': dark = st.lockWallSame !== false ? !DARK_WALLS[st.wall] : true; break;
+        default: dark = false; /* recents / spotlight / power */
       }
-      if (S.shade || st.cameraCutout) dark = false;
+      if (S.shade) dark = false;
     }
     h.setAttribute('data-sb', dark ? 'dark' : 'light');
     /* 图标按状态栏明暗切换白色/黑色版本（带防递归守卫） */
