@@ -691,6 +691,12 @@ html[data-theme="light"] .app-view { background: #f4f6fb; }
 .bp-tile b { font-size: 13px; font-weight: 500; display: block; }
 .bp-tile small { font-size: 10px; color: var(--muted); display: block; margin-top: 5px; }
 .bp-offline { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+/* 真实网页浏览：iframe 视窗 + 内嵌提示 */
+.bp-note { font-size: 10px; line-height: 1.7; color: var(--muted); padding: 10px 12px;
+  border-radius: 12px; background: rgba(255,255,255,.06); border: 1px solid var(--stroke); margin-bottom: 10px; }
+.browser-frame { height: 58vh; min-height: 320px; border-radius: 16px; overflow: hidden;
+  border: 1px solid var(--stroke); background: #fff; }
+.browser-frame iframe { width: 100%; height: 100%; border: 0; display: block; background: #fff; }
 .music-art { width: 200px; height: 200px; margin: 16px auto 22px; border-radius: 22px; display: grid; place-items: center;
   background: linear-gradient(140deg, #7f77dd, #c4a6ff 50%, #f0997b); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
 .music-art svg { width: 70px; height: 70px; color: #fff; opacity: .85; }
@@ -3788,7 +3794,10 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
   };
 
   /* ============================================================
-     浏览器：地址栏 / 内置页面 / 真实离线判定
+     浏览器：真实网页浏览（iframe）+ 内置 muos:// 页面 + 书签
+     · 地址栏可输入任意网址，自动补 https://
+     · 词组输入＝搜索引擎新标签打开（大站禁止内嵌，无法 iframe）
+     · 部分网站发送 X-Frame-Options 拒绝内嵌 → 提供一键新标签打开
      ============================================================ */
   var BPAGES = {
     'muos://home': { t: 'MUOS 首页', tiles: [
@@ -3802,42 +3811,106 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
       ['解锁', '锁屏向上滑动'], ['回主屏', '底部上滑'], ['多任务', '上滑停顿'],
       ['关机', '长按机身右侧电源键'], ['息屏', '短按电源键或等待自动锁屏'] ] }
   };
+  /* 允许被 iframe 嵌入的演示站点（大站大多禁止内嵌） */
+  var BQUICK = [
+    ['示例网站', 'https://example.com'],
+    ['开放地图', 'https://www.openstreetmap.org/export/embed.html?bbox=116.2%2C39.8%2C116.6%2C40.05&layer=mapnik'],
+    ['维基百科', 'https://www.wikipedia.org'],
+    ['WhatIsMyIP', 'https://api.ipify.org?format=json']
+  ];
+  function normUrl(input) {
+    var s = (input || '').trim();
+    if (!s) return '';
+    if (s.indexOf('muos://') === 0) return s;
+    if (/^https:\/\//i.test(s)) return s;
+    if (/^http:\/\//i.test(s)) return s.replace(/^http:\/\//i, 'https://'); /* https 页面禁嵌 http，自动升级 */
+    /* 含域名特征 → 当网址；否则当搜索词（新标签打开搜索） */
+    if (/^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?([/?#].*)?$/i.test(s)) return 'https://' + s;
+    return '';
+  }
   NM.register('browser', {
-    init: function (v) { v.state.url = 'muos://home'; },
+    init: function (v) {
+      v.state.url = 'muos://home';
+      v.state.stack = ['muos://home']; v.state.idx = 0;
+    },
     pages: {
       main: function (v) {
         var net = !S.settings.airplane && (S.settings.wifi || S.settings.cellular);
-        var p = BPAGES[v.state.url];
+        var st = v.state, internal = BPAGES[st.url];
+        var canBack = st.idx > 0, canFwd = st.idx < st.stack.length - 1;
+        var bar =
+          '<div class="browser-bar" style="margin:-14px -16px 0;padding:9px 12px">' +
+          '<button data-a="br-back" title="后退" style="' + (canBack ? '' : 'opacity:.35') + '">' + svg('back', 15) + '</button>' +
+          '<button data-a="br-fwd" title="前进" style="' + (canFwd ? '' : 'opacity:.35') + '">' + svg('chevron', 15) + '</button>' +
+          '<input data-f="br-url" value="' + esc(st.brUrl || st.url) + '" placeholder="输入网址或搜索词">' +
+          '<button data-a="br-go">前往</button>' +
+          '<button data-a="br-newtab" title="在新标签页打开">' + svg('link', 15) + '</button>' +
+          '</div>';
+        if (!net) {
+          return NM.appBar(v, '浏览器', '<button class="bar-btn" data-a="br-bookmark">' + svg('bookmark', 14) + '</button>') + bar +
+            '<div class="browser-page"><div class="bp-offline">' + svg('wifi', 40) +
+            '<div style="margin:14px 0;font-size:15px;color:var(--text)">无法连接到网络</div>' +
+            '飞行模式已开启或 WiFi 与移动数据均已关闭。<br>请到控制中心打开网络后重试。</div></div>' + NM.endBar();
+        }
         var content;
-        if (!net) content = '<div class="bp-offline">' + svg('wifi', 40) +
-          '<div style="margin:14px 0;font-size:15px;color:var(--text)">无法连接到网络</div>' +
-          '飞行模式已开启或 WiFi 与移动数据均已关闭。<br>请到控制中心打开网络后重试。</div>';
-        else if (!p) content = '<div class="bp-offline">' + svg('globe', 40) +
-          '<div style="margin:14px 0;font-size:15px;color:var(--text)">找不到该页面</div>' +
-          esc(v.state.url) + '<br>这是一个离线模拟浏览器，可试试 muos://home、muos://news、muos://help</div>';
-        else content = '<div class="bp-hero"><b>' + esc(p.t) + '</b><small>本地模拟页面 · 不发起任何网络请求</small></div>' +
-          '<div class="bp-tiles">' + p.tiles.map(function (t) {
-            return '<div class="bp-tile"><b>' + esc(t[0]) + '</b><small>' + esc(t[1]) + '</small></div>';
-          }).join('') + '</div>';
-        return NM.appBar(v, '浏览器', '<button class="bar-btn" data-a="br-bookmark">' + svg('bookmark', 14) + '</button>') +
-          '<div class="browser-bar" style="margin:-14px -16px 0;padding:9px 16px">' +
-          '<input data-f="br-url" value="' + esc(v.state.url) + '" placeholder="输入地址">' +
-          '<button data-a="br-go">前往</button></div>' +
-          '<div class="browser-page">' + content +
-          '<div class="section-title">快速访问</div><div class="bp-tiles">' +
-          Object.keys(BPAGES).map(function (u) {
-            return '<div class="bp-tile" data-a="br-open" data-v="' + u + '"><b>' + esc(BPAGES[u].t) + '</b><small>' + u + '</small></div>';
-          }).join('') + '</div>' +
-          '<div class="section-title">书签 ' + (S.data.bookmarks || []).length + '</div>' +
-          ((S.data.bookmarks || []).length ? (S.data.bookmarks || []).map(function (u) {
-            return '<div class="row" style="margin-bottom:8px;border-radius:14px" data-a="br-open" data-v="' + esc(u) + '">' +
-              svg('link', 17) + '<span class="row-main"><b>' + esc(u) + '</b></span></div>';
-          }).join('') : '<div class="empty" style="padding:20px">点右上角书签图标收藏当前页</div>') + '</div>' + NM.endBar();
+        if (internal) {
+          content = '<div class="bp-hero"><b>' + esc(internal.t) + '</b><small>MUOS 内置页面</small></div>' +
+            '<div class="bp-tiles">' + internal.tiles.map(function (t) {
+              return '<div class="bp-tile"><b>' + esc(t[0]) + '</b><small>' + esc(t[1]) + '</small></div>';
+            }).join('') + '</div>' +
+            '<div class="section-title">快速访问（真实网站）</div><div class="bp-tiles">' +
+            BQUICK.map(function (q) {
+              return '<div class="bp-tile" data-a="br-open" data-v="' + esc(q[1]) + '"><b>' + esc(q[0]) + '</b><small>' + esc(q[1]) + '</small></div>';
+            }).join('') + '</div>' +
+            '<div class="section-title">书签 ' + (S.data.bookmarks || []).length + '</div>' +
+            ((S.data.bookmarks || []).length ? (S.data.bookmarks || []).map(function (u) {
+              return '<div class="row" style="margin-bottom:8px;border-radius:14px" data-a="br-open" data-v="' + esc(u) + '">' +
+                svg('link', 17) + '<span class="row-main"><b>' + esc(u) + '</b></span></div>';
+            }).join('') : '<div class="empty" style="padding:20px">浏览网页时点右上角书签图标收藏</div>');
+        } else {
+          content = '<div class="bp-note">部分网站（如百度 / Google / B 站）禁止被嵌入网页显示；若下方空白，点右上角 ↗ 在新标签页打开。</div>' +
+            '<div class="browser-frame"><iframe src="' + esc(st.url) + '" referrerpolicy="no-referrer" allowfullscreen></iframe></div>';
+        }
+        return NM.appBar(v, '浏览器', '<button class="bar-btn" data-a="br-bookmark">' + svg('bookmark', 14) + '</button>') + bar +
+          '<div class="browser-page">' + content + '</div>' + NM.endBar();
       }
     },
     actions: {
-      'br-go': function (v) { v.state.url = (v.state.brUrl || v.state.url || '').trim(); NM.renderView(v); },
-      'br-open': function (v, u) { v.state.url = u; NM.renderView(v); },
+      'br-go': function (v) {
+        var raw = (v.state.brUrl || '').trim();
+        var url = normUrl(raw);
+        if (!url) { /* 不是网址 → 新标签打开搜索 */
+          if (raw) W.open('https://www.bing.com/search?q=' + encodeURIComponent(raw), '_blank');
+          NM.island(raw ? '已在系统浏览器打开搜索' : '请输入网址', 1400);
+          return;
+        }
+        var st = v.state;
+        st.stack = st.stack.slice(0, st.idx + 1);
+        st.stack.push(url); st.idx = st.stack.length - 1;
+        st.url = url; st.brUrl = url;
+        NM.renderView(v);
+      },
+      'br-back': function (v) {
+        var st = v.state;
+        if (st.idx > 0) { st.idx--; st.url = st.stack[st.idx]; st.brUrl = st.url; NM.renderView(v); }
+      },
+      'br-fwd': function (v) {
+        var st = v.state;
+        if (st.idx < st.stack.length - 1) { st.idx++; st.url = st.stack[st.idx]; st.brUrl = st.url; NM.renderView(v); }
+      },
+      'br-newtab': function (v) {
+        var u = v.state.url;
+        if (u.indexOf('muos://') === 0) { NM.island('内置页面无需新标签', 1300); return; }
+        W.open(u, '_blank'); NM.island('已在系统浏览器打开', 1300);
+      },
+      'br-reload': function (v) { NM.renderView(v); },
+      'br-open': function (v, u) {
+        var st = v.state;
+        st.stack = st.stack.slice(0, st.idx + 1);
+        st.stack.push(u); st.idx = st.stack.length - 1;
+        st.url = u; st.brUrl = u;
+        NM.renderView(v);
+      },
       'br-bookmark': function (v) {
         S.data.bookmarks = S.data.bookmarks || [];
         if (S.data.bookmarks.indexOf(v.state.url) < 0) S.data.bookmarks.push(v.state.url);
