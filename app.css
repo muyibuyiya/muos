@@ -1223,12 +1223,21 @@ html[data-cutout="1"] #statusbar { background: transparent; }
 #cam-cutout { position: absolute; top: 0; left: 50%; transform: translateX(-50%);
   z-index: 53; background: #000; display: none; pointer-events: none; }
 html[data-cam="hole"] #cam-cutout { display: block; width: 14px; height: 14px; border-radius: 50%; top: 11px; }
-html[data-cam="island"] #cam-cutout { display: none; }   /* 灵动岛形态：#island 本身就是摄像头舱，不再另画 */
-html[data-cam="notch"] #cam-cutout { display: block; width: 148px; height: 25px; border-radius: 0 0 15px 15px; }
+/* 灵动岛形态：#island 本身就是摄像头舱 —— 即使无消息也保持可见的黑色药丸 */
+html[data-cam="island"] #cam-cutout { display: none; }
+html[data-cam="island"][data-cam-side="screen"] #island { min-width: 118px; display: flex !important; }
+html[data-cam="island"][data-cam-side="screen"] #island.quiet { opacity: 1; }
+/* 刘海：加长加宽、与机身边框同色（同款金属渐变），状态栏文字整体下移避开刘海 */
+html[data-cam="notch"] #cam-cutout {
+  display: block; width: 190px; height: 27px; border-radius: 0 0 17px 17px; top: 0;
+  background: linear-gradient(145deg, #3a3d47, #0b0d12 45%, #171a22 75%, #454955);
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,.08);
+}
+html[data-cam="notch"] .sb-inner { padding-top: 31px; }
 html[data-cam-side="frame"] #cam-cutout { display: none !important; }
 /* 挖孔/刘海与超级岛融合：挖孔嵌在岛胶囊中心（文字避让），刘海模式下岛整体下移 */
 html[data-cam="hole"] #island { padding: 0 30px; min-width: 134px; }
-html[data-cam="notch"] #island { top: 31px; }
+html[data-cam="notch"] #island { top: 34px; }
 html[data-seam="1"][data-cam="hole"] #island { left: 75%; }
 /* 摄像头放边框上：四边都加宽边框 */
 html[data-cam-side="frame"] #device { padding: calc(var(--frame-pad, 11px) + 9px); }
