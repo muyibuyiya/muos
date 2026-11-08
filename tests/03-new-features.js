@@ -135,7 +135,6 @@ setTimeout(() => {
       ck('长按桌面进入编辑态', S.editing === true);
       ck('布局编辑器已显示', d.getElementById('home-editor').classList.contains('on'));
       ck('有添加小组件入口', !!d.querySelector('#home-editor [data-a="wd-pick"]'));
-      ck('有页面缩略图', d.querySelectorAll('#home-editor .ed-page').length >= 2);
       d.querySelector('#home-editor [data-a="wd-pick"]').click();
       ck('小组件选择器展开', d.querySelectorAll('#home-editor .wd-item').length === 10);
     });

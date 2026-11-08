@@ -155,6 +155,15 @@ setTimeout(async () => {
     NM.goHome();
     NM.openRecents();
     ck('进入多任务界面', S.screen === 'recents', S.screen);
+    ck('布局切换按钮 3 个', d.querySelectorAll('.recent-modes [data-a="recent-layout"]').length === 3);
+    d.querySelector('.recent-modes [data-a="recent-layout"][data-v="stack"]').click();
+    ck('堆叠布局生效', d.getElementById('recent-track').classList.contains('stack') &&
+      S.settings.recentLayout === 'stack', S.settings.recentLayout);
+    d.querySelector('.recent-modes [data-a="recent-layout"][data-v="grid"]').click();
+    ck('瀑布布局生效', d.getElementById('recent-track').classList.contains('grid'), S.settings.recentLayout);
+    d.querySelector('.recent-modes [data-a="recent-layout"][data-v="h"]').click();
+    ck('切回水平布局', d.getElementById('recent-track').classList.contains('recent-track') &&
+      !d.getElementById('recent-track').classList.contains('grid'), S.settings.recentLayout);
     d.getElementById('recents').click();
     ck('点击空白退出多任务', S.screen !== 'recents', S.screen);
     ck('退出后回到主屏', S.screen === 'home', S.screen);

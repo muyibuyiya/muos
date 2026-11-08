@@ -275,7 +275,7 @@
     unknownSources: false, overlayPerm: false, ignoreBatteryOpt: false,
     writeSettings: false, highContrastKbd: false, spen: false, chargingMirror: false,
     /* 基础 */
-    nav: 'gesture', indStyle: 'classic', indTint: true, indSwitch: true, deviceName: '', animations: true, torch: false
+    nav: 'gesture', indStyle: 'classic', indTint: true, indSwitch: true, recentLayout: 'h', deviceName: '', animations: true, torch: false
   };
   var DEFAULT_DATA = {
     notes: [

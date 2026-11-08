@@ -299,14 +299,7 @@
     var pages = S._pages || [[]];
     host.innerHTML =
       '<div class="ed-topbar"><button data-a="ed-done">完成</button></div>' +
-      '<div class="ed-pages">' + pages.map(function (list, i) {
-        return '<button class="ed-page ' + (i === S.homePage ? 'on' : '') + '" data-a="ed-page" data-v="' + i + '">' +
-          '<span class="ed-thumb">' + list.slice(0, 8).map(function (id) {
-            var a = NM.appById(id); return a ? '<i style="background:linear-gradient(140deg,' + a.c1 + ',' + a.c2 + ')"></i>' : '';
-          }).join('') + '</span><small>' + (i === 0 ? '主页面' : '第 ' + (i + 1) + ' 页') + '</small></button>';
-      }).join('') +
-      '<button class="ed-page add" data-a="ed-add-page">' + svg('plus', 20) + '<small>添加页面</small></button></div>' +
-      '<div class="ed-hint">拖动图标排序 · 点图标或小组件左上角「−」移除</div>' +
+      '<div class="ed-hint">左右滑动桌面可翻页 · 最后一页继续左滑新建页面 · 拖动图标排序 · 点「−」移除</div>' +
       (S._wdPicker ? widgetPicker() : '') +
       '<div class="ed-toolbar">' +
       '<button data-a="wd-pick">' + svg('stack', 20) + '<span>小组件</span></button>' +
@@ -508,17 +501,19 @@
   document.addEventListener('pointerup', function () { clearTimeout(drTimer); });
   document.addEventListener('pointercancel', function () { clearTimeout(drTimer); });
 
-  /* 编辑模式下拖动图标排序：交换 desktop 数组中的位置 */
+  /* 编辑模式下拖动图标排序：交换 desktop 数组中的位置（大幅移动＝翻页手势，不交换） */
   var drag = null;
   document.addEventListener('pointerdown', function (e) {
     if (!S.editing || S.screen !== 'home') return;
     var el = e.target.closest && e.target.closest('.app-icon[data-app]');
     if (!el || !$('#pages-track') || !$('#pages-track').contains(el)) return;
-    drag = { id: el.getAttribute('data-app'), el: el };
+    drag = { id: el.getAttribute('data-app'), el: el, x: e.clientX, y: e.clientY };
   });
   document.addEventListener('pointerup', function (e) {
     if (!drag) return;
+    var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     var from = drag.id; drag = null;
+    if (Math.abs(dx) > 60 || Math.abs(dy) > 60) return;   /* 翻页滑动，不参与排序 */
     if (!W.document.elementFromPoint) return;
     var t = W.document.elementFromPoint(e.clientX, e.clientY);
     var to = t && t.closest ? t.closest('.app-icon[data-app]') : null;

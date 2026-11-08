@@ -26,6 +26,7 @@
       else { SYS._homeAt = now; setTimeout(function () { if (SYS._homeAt && Date.now() - SYS._homeAt >= 300) { SYS._homeAt = 0; NM.goHome(); } }, 320); }
     },
     'recents-btn': function () { NM.hideShade(); NM.openRecents(); },
+    'recent-layout': function (lay) { S.settings.recentLayout = lay; NM.save(); NM.openRecents(); },
     'open-recents': function () { NM.hideShade(); NM.openRecents(); },
     'open-settings': function () { NM.hideShade(); NM.launchApp('settings'); },
     'open-spotlight': function () { NM.openSpotlight(); },
@@ -121,16 +122,22 @@
     if (SYS[a]) { SYS[a](v, el, e); return; }
     var view = S.fg && S.views[S.fg];
     if (view && view.def.actions && view.def.actions[a]) { view.def.actions[a](view, v, el, e); return; }
-    /* 多任务卡片的空白区域点击 = 恢复该应用 */
+    /* 多任务卡片空白点击 = 恢复应用；滑动浏览时（位移 > 12px）不算点击 */
     var card = el.closest && el.closest('.recent-card');
-    if (card && !a) NM.resumeTask(card.getAttribute('data-card'));
+    if (card && !a) {
+      if (Math.abs(e.clientX - holdX) + Math.abs(e.clientY - holdY) > 12) return;
+      NM.resumeTask(card.getAttribute('data-card'));
+    }
   }
   document.addEventListener('click', function (e) {
     var t = e.target.closest ? e.target.closest('[data-a]') : null;
     if (t) { dispatch(t.getAttribute('data-a'), t.getAttribute('data-v') || '', t, e); return; }
-    /* 点击多任务卡片本体恢复应用 */
+    /* 点击多任务卡片本体恢复应用；滑动浏览时（位移 > 12px）不算点击 */
     var card = e.target.closest ? e.target.closest('.recent-card') : null;
-    if (card && S.screen === 'recents') { NM.resumeTask(card.getAttribute('data-card')); return; }
+    if (card && S.screen === 'recents') {
+      if (Math.abs(e.clientX - holdX) + Math.abs(e.clientY - holdY) > 12) return;
+      NM.resumeTask(card.getAttribute('data-card')); return;
+    }
     /* 点击多任务界面空白处（背景 / 标题 / 空态 / 空轨道）退出，回到进入前的应用或主屏 */
     if (S.screen === 'recents' && !e.target.closest('.recent-card') && !e.target.closest('[data-a]')) {
       NM.closeRecents(); return;
@@ -290,8 +297,8 @@
         if (dy < -38) {
           if (S.screen === 'lock') NM.beginUnlock();
           else if (S.screen === 'off') NM.wake();
-          else if (dy < -190 || dt > 420) NM.openRecents();
-          else NM.goHome();
+          else if (dt > 1000) NM.openRecents();   /* 上滑拖住满 1 秒 → 多任务 */
+          else NM.goHome();                        /* 快速 / 大幅上滑 → 主界面 */
         } else if (dy > 38 && Math.abs(dx) < 60) {
           /* 小横条下滑：通知 / 控制中心展开时收起，否则回到桌面 */
           if (S.shade) NM.hideShade();
@@ -310,8 +317,15 @@
         if (dx > 55 && Math.abs(dy) < 90) SYS['back']();
         break;
       case 'home':
-        if (Math.abs(dx) > 55 && Math.abs(dy) < 60) NM.gotoPage(S.homePage + (dx < 0 ? 1 : -1));
-        else if (dy > 70 && Math.abs(dx) < 60) {
+        if (Math.abs(dx) > 55 && Math.abs(dy) < 60) {
+          /* 编辑模式下在最后一页继续向左滑 = 新建一页并向后翻 */
+          if (S.editing && dx < 0 && dx < -70 && S.homePage >= (S._pages || [1]).length - 1 &&
+              NM.HOME_SYS && NM.HOME_SYS['ed-add-page']) {
+            NM.HOME_SYS['ed-add-page']();
+            NM.gotoPage((S._pages || []).length - 1, true);
+            NM.island('已新建桌面页', 1200);
+          } else NM.gotoPage(S.homePage + (dx < 0 ? 1 : -1));
+        } else if (dy > 70 && Math.abs(dx) < 60) {
           /* 主屏下滑：左侧拉通知中心、右侧拉控制中心（真机分区行为）；
              「下滑打开搜索」开启时，从中部下滑仍优先搜索 */
           var half = relX < display.clientWidth / 2 ? 'notif' : 'control';

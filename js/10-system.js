@@ -394,6 +394,14 @@
   NM.openRecents = function () {
     NM.markInput(); NM.hideShade(); NM.hideForeground();
     var track = $('#recent-track');
+    /* 布局切换：水平 / 堆叠 / 瀑布，随设置持久化 */
+    var lay = S.settings.recentLayout || 'h';
+    var head = document.querySelector('.recent-head');
+    if (head) head.innerHTML = '<span class="recent-title">最近使用的应用</span><span class="recent-modes">' +
+      [['h', '水平'], ['stack', '堆叠'], ['grid', '瀑布']].map(function (m) {
+        return '<button class="' + (lay === m[0] ? 'on' : '') + '" data-a="recent-layout" data-v="' + m[0] + '">' + m[1] + '</button>';
+      }).join('') + '</span>';
+    track.className = 'recent-track' + (lay === 'h' ? '' : ' ' + lay);
     track.innerHTML = '';
     $('#recent-empty').style.display = 'none';
     if (!S.tasks.length) $('#recent-empty').style.display = 'block';
