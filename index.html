@@ -1225,15 +1225,19 @@ html[data-correct="1"] #display { filter: contrast(1.12) saturate(.8) hue-rotate
 html[data-contrast="1"] .card, html[data-contrast="1"] .set-row { border-color: var(--text); }
 html[data-privacy="1"] #display { box-shadow: inset 0 0 70px 24px rgba(0,0,0,.7); }
 html[data-privacy="max"] #display { box-shadow: inset 0 0 110px 44px rgba(0,0,0,.88); }
-html[data-cutout="1"] #statusbar { background: #000; }
+html[data-cutout="1"] #statusbar { background: transparent; }
 
 /* 前置摄像头区域：形态与位置由外层控制台选择，系统内只读展示 */
 #cam-cutout { position: absolute; top: 0; left: 50%; transform: translateX(-50%);
   z-index: 53; background: #000; display: none; pointer-events: none; }
 html[data-cam="hole"] #cam-cutout { display: block; width: 14px; height: 14px; border-radius: 50%; top: 11px; }
-html[data-cam="island"] #cam-cutout { display: block; width: 84px; height: 25px; border-radius: 14px; top: 10px; }
+html[data-cam="island"] #cam-cutout { display: none; }   /* 灵动岛形态：#island 本身就是摄像头舱，不再另画 */
 html[data-cam="notch"] #cam-cutout { display: block; width: 148px; height: 25px; border-radius: 0 0 15px 15px; }
 html[data-cam-side="frame"] #cam-cutout { display: none !important; }
+/* 挖孔/刘海与超级岛融合：挖孔嵌在岛胶囊中心（文字避让），刘海模式下岛整体下移 */
+html[data-cam="hole"] #island { padding: 0 30px; min-width: 134px; }
+html[data-cam="notch"] #island { top: 31px; }
+html[data-seam="1"][data-cam="hole"] #island { left: 75%; }
 /* 摄像头放边框上：四边都加宽边框 */
 html[data-cam-side="frame"] #device { padding: calc(var(--frame-pad, 11px) + 9px); }
 /* 折叠内屏有物理折痕：摄像头区域放在一侧屏幕上，而不是压在中间接缝 */
