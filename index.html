@@ -214,9 +214,9 @@ html[data-sb="light"] .sb-inner { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0
 html[data-cutout="1"] .sb-inner { color: #fff !important; }
 .sb-icons { display: flex; align-items: center; gap: 5px; max-width: calc(50% - 30px); overflow: hidden; }
 .sb-icons svg { width: 16px; height: 16px; vertical-align: -3px; }
-/* 新状态栏图标（PNG 透明底）：全部统一 18×18 视觉盒，按比例内缩 */
-.sb-icons .sb-ico { width: 18px; height: 18px; object-fit: contain; vertical-align: -3px; }
-.battery-wrap .sb-ico { width: 26px; height: 18px; object-fit: contain; }
+/* 新状态栏图标（PNG 透明底）：统一 16×16 视觉盒，稍小更贴近真机 */
+.sb-icons .sb-ico { width: 16px; height: 16px; object-fit: contain; vertical-align: -3px; }
+.battery-wrap .sb-ico { width: 23px; height: 16px; object-fit: contain; }
 /* 电量数字嵌在电池图标内部（实心电池 → 反色文字） */
 .battery-chip { position: relative; display: inline-flex; align-items: center; }
 .battery-chip b { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: grid; place-items: center;
@@ -863,6 +863,8 @@ html[data-theme="light"] #lock::before { content: ""; position: absolute; inset:
 .recent-window .app-view { width: var(--pw); height: var(--ph); transform: scale(var(--snap-scale)); }
 .sb-brand { font-size: 9px; letter-spacing: 1px; padding: 1px 5px; border-radius: 5px;
   background: rgba(255,255,255,.16); opacity: .8; }
+/* 窄幅外屏（330px）空间紧张：隐藏品牌角标，给时间与图标让位 */
+html[data-cover="1"] .sb-brand { display: none !important; }
 
 html[data-form="pad"] #device { box-shadow: 0 0 0 2px #05060a, 0 40px 100px rgba(0,0,0,.65), inset 0 0 2px rgba(255,255,255,.35); }
 html[data-form="pad"] .home-scroll { bottom: 128px; }
@@ -1240,7 +1242,7 @@ html[data-cutout="1"] #statusbar { background: transparent; }
 
 /* 前置摄像头区域：形态与位置由外层控制台选择，系统内只读展示 */
 #cam-cutout { position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-  z-index: 53; background: #000; display: none; pointer-events: none; }
+  z-index: 72; background: #000; display: none; pointer-events: none; } /* 高于息屏层，熄屏/AOD 下刘海仍可见 */
 html[data-cam="hole"] #cam-cutout { display: block; width: 14px; height: 14px; border-radius: 50%; top: 11px; }
 /* 灵动岛形态：#island 本身就是摄像头舱 —— 固定尺寸、不含任何文字 */
 html[data-cam="island"] #cam-cutout { display: none; }
@@ -2142,7 +2144,10 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
     unknownSources: false, overlayPerm: false, ignoreBatteryOpt: false,
     writeSettings: false, highContrastKbd: false, spen: false, chargingMirror: false,
     /* 基础 */
-    nav: 'gesture', indStyle: 'classic', indTint: true, indSwitch: true, recentLayout: 'h', deviceName: '', animations: true, torch: false
+    nav: 'gesture', indStyle: 'classic', indTint: true, indSwitch: true,
+    indUpAction: 'home', indUpHoldAction: 'recents', indHoldMs: 1000,
+    indDownAction: 'shade', indSideAction: 'switch',
+    recentLayout: 'h', deviceName: '', animations: true, torch: false
   };
   var DEFAULT_DATA = {
     notes: [
@@ -2539,18 +2544,19 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
     var st = S.settings, out = '';
     var tone = document.documentElement.getAttribute('data-sb') === 'dark' ? 'b' : 'w';
     function ico(name) { return NM.sicon ? NM.sicon(name, tone) : ''; }
-    /* 图标避让刘海 / 灵动岛：按剩余宽度决定最多显示几个，优先保留必要信息 */
+    /* 图标避让刘海 / 灵动岛：按剩余宽度决定最多显示几个；
+       优先级：Wi‑Fi > 信号 > 蓝牙 > 闹钟 > 勿扰 > 手电筒，电池永远显示 */
     var h = document.documentElement;
     var cam = h.getAttribute('data-cam') || 'none';
     var camW = cam === 'notch' ? 150 : cam === 'island' ? 118 : cam === 'hole' ? 134 : 0;
     var cssW = NM.deviceInfo ? NM.deviceInfo().cssW : 390;
-    var avail = Math.max(66, cssW / 2 - camW / 2 - 34 - 42); /* 半屏 − 摄像头 − 边距 − 时间宽 */
-    var cap = Math.max(1, Math.floor(avail / 21));
+    var avail = Math.max(50, cssW / 2 - camW / 2 - 38 - 40); /* 半屏 − 摄像头半宽 − 边距 − 时间宽 */
+    var cap = Math.max(1, Math.floor(avail / 19));
     var opts = [];
     if (st.airplane) opts.push(ico('airplane') || NM.svg('airplane', 14));
     else {
-      if (st.cellular) opts.push(ico('signal') || NM.svg('signal', 14));
       if (st.wifi) opts.push(ico('wifi') || NM.svg('wifi', 14));
+      if (st.cellular) opts.push(ico('signal') || NM.svg('signal', 14));
     }
     if (st.bluetooth && !st.airplane) opts.push(ico('bt') || NM.svg('bluetooth', 13));
     if ((S.data.alarms || []).some(function (a) { return a.on; })) opts.push(ico('alarm'));
@@ -2886,13 +2892,8 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
   NM.openRecents = function () {
     NM.markInput(); NM.hideShade(); NM.hideForeground();
     var track = $('#recent-track');
-    /* 布局切换：水平 / 堆叠 / 瀑布，随设置持久化 */
+    /* 布局由设置决定（设置 → 主屏幕 → 多任务界面布局），页面内不再提供切换 */
     var lay = S.settings.recentLayout || 'h';
-    var head = document.querySelector('.recent-head');
-    if (head) head.innerHTML = '<span class="recent-title">最近使用的应用</span><span class="recent-modes">' +
-      [['h', '水平'], ['stack', '堆叠'], ['grid', '瀑布']].map(function (m) {
-        return '<button class="' + (lay === m[0] ? 'on' : '') + '" data-a="recent-layout" data-v="' + m[0] + '">' + m[1] + '</button>';
-      }).join('') + '</span>';
     track.className = 'recent-track' + (lay === 'h' ? '' : ' ' + lay);
     track.innerHTML = '';
     $('#recent-empty').style.display = 'none';
@@ -5387,6 +5388,8 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
         O('3x3', '3 × 3'), O('4x4', '4 × 4')]),
       T('大小文件夹', '把 2×2 文件夹放大为桌面主入口', 'bigFolder'),
       T('小部件堆叠', '同位置多个小组件左右滑动切换', 'widgetStack'),
+      SEG('多任务界面布局', '最近任务页的排列方式', 'recentLayout', [
+        O('h', '水平'), O('stack', '堆叠'), O('grid', '瀑布')]),
       H('手势'),
       NAV('系统导航与小横条', '小横条 / 三大键 / 隐藏 · 小横条外观与功能', 'navDetail'),
       T('在主屏幕向下滑动打开搜索', '关闭后下滑改为打开通知面板（真机默认行为）', 'swipeSearch'),
@@ -5620,19 +5623,32 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
   var SUBPAGES = {
     /* 系统导航：三种显示方式 + 桌面搜索框 + 快捷任务入口 */
     navDetail: function (v) {
+      var holdOpts = [];
+      for (var ms = 100; ms <= 1000; ms += 100) {
+        holdOpts.push(O(ms, (ms === 1000 ? '1 秒' : (ms / 1000).toFixed(1) + ' 秒')));
+      }
       return rowsHtml([
         H('系统导航方式'),
         SEG('导航栏显示', '小横条＝全面屏手势；三键＝经典导航；不显示＝纯净全屏（手势仍可用）', 'nav', [
           O('gesture', '小横条'), O('buttons', '三键'), O('none', '不显示')]),
+        H('小横条手势 · 动作'),
+        SEL('快速上滑', '短距离上滑（未达到停顿时间）', 'indUpAction', [
+          O('home', '回主屏'), O('recents', '多任务'), O('none', '无')]),
+        SEL('上滑停顿', '拖住小横条达到设定时间后松手', 'indUpHoldAction', [
+          O('recents', '多任务'), O('home', '回主屏'), O('none', '无')]),
+        SEL('停顿判定时间', '拖住多久算「停顿」触发，100ms 档位可调', 'indHoldMs', holdOpts),
+        SEL('下滑', '小横条向下滑', 'indDownAction', [
+          O('shade', '收起面板 / 回桌面'), O('home', '回桌面'), O('none', '无')]),
+        SEL('左右滑', '小横条左右滑动', 'indSideAction', [
+          O('switch', '切换最近应用'), O('none', '无')]),
+        H('小横条外观'),
+        SEL('小横条样式', '底部手势条的长度外观', 'indStyle', [
+          O('short', '短款'), O('classic', '标准'), O('long', '加长')]),
+        T('随背景取色', '浅色界面自动变深，深色界面保持白色', 'indTint'),
         H('主屏幕手势'),
         T('在主屏幕向下滑动打开搜索', '关闭后下滑改为打开通知面板', 'swipeSearch'),
         T('上滑打开应用抽屉', '在主屏中部上滑查看全部应用', 'swipeUpDrawer'),
         T('显示桌面搜索框', '桌面底部的搜索胶囊', 'showSearchPill'),
-        H('小横条'),
-        SEL('小横条样式', '底部手势条的长度外观', 'indStyle', [
-          O('short', '短款'), O('classic', '标准'), O('long', '加长')]),
-        T('随背景取色', '浅色界面自动变深，深色界面保持白色', 'indTint'),
-        T('左右滑切换应用', '在小横条上左右滑动切换最近应用', 'indSwitch'),
         H('设置首页快捷任务'),
         T('显示「你想做什么？」', '整块隐藏后仍可从下面的自定义页恢复', 'showTasks'),
         SEG('默认状态', '收起时只保留一行摘要', 'taskFolded', [O(false, '展开'), O(true, '收起')]),
@@ -8279,6 +8295,12 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
     bar.style.transform = ''; bar.style.opacity = '';
     setTimeout(function () { bar.style.transition = ''; }, 180);
   }
+  /* 小横条手势动作（可在 设置 → 系统导航与小横条 中配置） */
+  function indAction(a) {
+    if (a === 'recents') NM.openRecents();
+    else if (a === 'home') NM.goHome();
+    /* 'none'：不做任何事 */
+  }
   function local(cx, cy) {
     return NM.localPoint ? NM.localPoint(cx, cy) : { x: cx, y: cy, scale: 1 };
   }
@@ -8367,15 +8389,20 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
         if (dy < -38) {
           if (S.screen === 'lock') NM.beginUnlock();
           else if (S.screen === 'off') NM.wake();
-          else if (dt > 1000) NM.openRecents();   /* 上滑拖住满 1 秒 → 多任务 */
-          else NM.goHome();                        /* 快速 / 大幅上滑 → 主界面 */
+          else {
+            /* 手势动作可配置：未达停顿时间 → 快速上滑动作；超过 → 停顿动作 */
+            var holdMs = clamp(+S.settings.indHoldMs || 1000, 100, 1000);
+            indAction(dt > holdMs ? (S.settings.indUpHoldAction || 'recents') : (S.settings.indUpAction || 'home'));
+          }
         } else if (dy > 38 && Math.abs(dx) < 60) {
-          /* 小横条下滑：通知 / 控制中心展开时收起，否则回到桌面 */
-          if (S.shade) NM.hideShade();
-          else if (S.screen !== 'home') NM.goHome();
+          var da = S.settings.indDownAction || 'shade';
+          if (da === 'none') { /* 不响应 */ }
+          else { if (S.shade) NM.hideShade(); else if (S.screen !== 'home') NM.goHome(); }
         } else if (Math.abs(dx) > 40 && Math.abs(dy) < 70 && S.screen === 'app') {
-          /* 小横条左右滑：在最近应用间快捷切换（dx<0 = 下一个），可在设置中关闭 */
-          if (S.settings.indSwitch !== false) NM.quickSwitch(dx < 0 ? 1 : -1);
+          /* 小横条左右滑：在最近应用间快捷切换（dx<0 = 下一个），动作可配置 */
+          if ((S.settings.indSideAction || (S.settings.indSwitch === false ? 'none' : 'switch')) === 'switch') {
+            NM.quickSwitch(dx < 0 ? 1 : -1);
+          }
         }
         break;
       case 'lock':
