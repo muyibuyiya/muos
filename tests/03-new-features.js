@@ -114,6 +114,12 @@ setTimeout(() => {
       NM.notify('messages', '被拦截', '不应出现');
       ck('逐应用通知开关生效', S.notifications.length === n0);
       S.settings.appNotif.messages = true;
+      ck('图标资源已加载（data URL）', !!NM.SICONS && !!NM.SICONS.wifi &&
+        /^data:image\/png;base64,/.test(NM.SICONS.wifi.w), !!NM.SICONS && !!NM.SICONS.wifi);
+      ck('单色图标自动补反色变体', !!(NM.SICONS.dnd && NM.SICONS.dnd.w && NM.SICONS.dnd.b));
+      NM.renderStatusBarIcons();
+      ck('状态栏使用新图标图片', d.querySelectorAll('#sb-icons img.sb-ico').length >= 2,
+        String(d.querySelectorAll('#sb-icons img.sb-ico').length));
       S.settings.hour24 = false;
       NM.tickClock();
       ck('12 小时制生效', d.getElementById('sb-time').textContent.indexOf('午') >= 0);

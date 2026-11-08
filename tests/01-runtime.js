@@ -27,7 +27,7 @@ setTimeout(() => {
   ck('开机完成 power=on', S.power === 'on');
   ck('首屏为锁屏', S.screen === 'lock');
   ck('24 个应用全部注册', NM.APPS.length === 24 && Object.keys(NM.VIEWS).length === 24);
-  ck('状态栏已渲染', !!w.document.querySelector('#sb-icons .battery-box'));
+  ck('状态栏已渲染', !!w.document.querySelector('#sb-icons .battery-box, #sb-icons .battery-wrap .sb-ico'));
   ck('主屏分页已渲染', w.document.querySelectorAll('.app-page').length >= 1);
   ck('外层设备控制台存在', !!w.document.querySelector('#device-console .dc-forms'));
   ck('设置一级分类 >= 24', (NM.SETTINGS_GROUPS || []).length >= 24);

@@ -59,19 +59,31 @@
       if (S.shade || st.cameraCutout) dark = false;
     }
     h.setAttribute('data-sb', dark ? 'dark' : 'light');
+    /* 图标按状态栏明暗切换白色/黑色版本（带防递归守卫） */
+    if (!NM._toneGuard && NM.renderStatusBarIcons) {
+      NM._toneGuard = 1;
+      try { NM.renderStatusBarIcons(); } finally { NM._toneGuard = 0; }
+    }
   };
   NM.renderStatusBarIcons = function () {
     var st = S.settings, out = '';
-    if (st.airplane) out += NM.svg('airplane', 14);
+    var tone = document.documentElement.getAttribute('data-sb') === 'dark' ? 'b' : 'w';
+    function ico(name) { return NM.sicon ? NM.sicon(name, tone) : ''; }
+    if (st.airplane) out += ico('airplane') || NM.svg('airplane', 14);
     else {
-      if (st.cellular) out += NM.svg('signal', 14);
-      if (st.wifi) out += NM.svg('wifi', 14);
+      if (st.cellular) out += ico('signal') || NM.svg('signal', 14);
+      if (st.wifi) out += ico('wifi') || NM.svg('wifi', 14);
     }
-    if (st.bluetooth && !st.airplane) out += NM.svg('bluetooth', 13);
-    if (st.dnd) out += NM.svg('moon', 13);
-    if (st.torch) out += NM.svg('torch', 13);
+    if (st.bluetooth && !st.airplane) out += ico('bt') || NM.svg('bluetooth', 13);
+    var hasAlarm = (S.data.alarms || []).some(function (a) { return a.on; });
+    if (hasAlarm) out += ico('alarm');
+    if (st.dnd) out += ico('dnd') || NM.svg('moon', 13);
+    if (st.torch) out += ico('torch') || NM.svg('torch', 13);
+    /* 电池：使用新图标（充电中显示充电图标），百分比数字保留 */
     out += '<span class="battery-wrap"><span class="sb-batt-num">' + Math.round(S.battery) + '</span>' +
-      '<span class="battery-box"><i class="battery-fill" style="width:' + clamp(S.battery, 0, 100) + '%"></i></span></span>';
+      (S.charging ? (ico('charging') || '') : '') +
+      (ico('battery') || '<span class="battery-box"><i class="battery-fill" style="width:' +
+        clamp(S.battery, 0, 100) + '%"></i></span>') + '</span>';
     var el = $('#sb-icons'); if (el) el.innerHTML = out;
     document.documentElement.setAttribute('data-charging', S.charging ? '1' : '0');
     document.documentElement.setAttribute('data-lowpower', st.lowpower ? '1' : '0');

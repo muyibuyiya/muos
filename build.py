@@ -4,7 +4,7 @@
 import os
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-ORDER = ['js/00-core.js', 'js/10-system.js', 'js/20-apps.js', 'js/30-more-apps.js',
+ORDER = ['js/00-core.js', 'js/05-staticons.js', 'js/10-system.js', 'js/20-apps.js', 'js/30-more-apps.js',
          'js/35-native-apps.js', 'js/40-settings.js', 'js/45-device.js',
          'js/50-home.js', 'js/60-motion.js', 'js/90-boot.js']
 
