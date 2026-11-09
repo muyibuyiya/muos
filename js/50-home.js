@@ -521,7 +521,11 @@
     var el = e.target.closest && e.target.closest('.dr-app'); if (!el) return;
     var id = el.getAttribute('data-app');
     drLong = false;
-    drTimer = W.setTimeout(function () { drLong = true; NM.addHomeIcon(id); NM.renderDrawer(); }, 520);
+    drTimer = W.setTimeout(function () {
+      /* 正在用鼠标拖动滚动列表时，松手前不算长按 */
+      if (NM.dragScrollActive) return;
+      drLong = true; NM.addHomeIcon(id); NM.renderDrawer();
+    }, 520);
   });
   document.addEventListener('pointerup', function () { clearTimeout(drTimer); });
   document.addEventListener('pointercancel', function () { clearTimeout(drTimer); });

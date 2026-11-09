@@ -312,6 +312,28 @@ setTimeout(async () => {
     ck('连按四次删除键应急进入', S.pinBuf === '' && d.getElementById('lock').classList.contains('slide-up'));
   });
 
+  /* ---------- 5.10d 鼠标拖拽滚动 ---------- */
+  safe('鼠标拖拽滚动', () => {
+    ck('提供滚动父级探测', typeof NM.scrollParentOf === 'function');
+    ck('拖拽时统一抓手光标', /body\.ms-drag/.test(html));
+    ck('拖拽滚动已绑定指针事件', html.indexOf('bindDragScroll') >= 0 &&
+      html.indexOf("document.body.classList.add('ms-drag')") >= 0);
+    ck('抽屉与面板内拖动不触发全局手势', html.indexOf("closest('#app-drawer')) return") >= 0 &&
+      html.indexOf('if (S.shade && e.target.closest') >= 0);
+    const outer = d.createElement('div');
+    outer.style.cssText = 'overflow-y:auto';
+    Object.defineProperty(outer, 'scrollHeight', { value: 600 });
+    Object.defineProperty(outer, 'clientHeight', { value: 300 });
+    const inner = d.createElement('span');
+    outer.appendChild(inner);
+    d.body.appendChild(outer);
+    ck('能识别可滚动父级', NM.scrollParentOf(inner) === outer);
+    const plain = d.createElement('div');
+    plain.appendChild(inner);
+    ck('非滚动区域不接管', NM.scrollParentOf(inner) === null);
+    outer.remove();
+  });
+
   /* ---------- 5.11 角标移除 + 设置归位账户中心 ---------- */
   safe('角标移除与设置归位', () => {
     NM.notify('messages', '测试通知', '内容');

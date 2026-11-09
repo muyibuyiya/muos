@@ -57,6 +57,8 @@ button { background: none; border: 0; cursor: pointer; }
 input, textarea { outline: none; border: 0; background: none; }
 ::-webkit-scrollbar { width: 0; height: 0; }
 .scroll { overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+/* 桌面端鼠标拖拽滚动进行中：统一抓手光标、禁选中，避免拖出蓝色选区 */
+body.ms-drag, body.ms-drag * { cursor: grabbing !important; user-select: none !important; -webkit-user-select: none !important; }
 
 /* ---------------- 桌面舞台与机身 ---------------- */
 #stage { display: flex; flex-direction: column; align-items: center; gap: 18px;
