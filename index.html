@@ -888,43 +888,51 @@ html[data-form="pad"] .shade-inner { padding-left: 34px; padding-right: 34px; }
    位置按形态：手机 / 竖折叠居中，平板右对齐，横折叠只占右侧半屏。 */
 #control-shade .shade-inner {
   width: 100%; height: 100%;
-  margin: 0; padding: 58px 18px 26px;
-  display: grid; grid-template-columns: 1fr auto; gap: 18px 14px;
-  grid-template-areas: "head head" "conn vs" "quick quick" "now now" "foot foot";
-  align-content: start; overflow-y: auto;
-  border-radius: 0; background: none; border: 0; box-shadow: none;
+  margin: 0; padding: 64px 18px 22px;
+  display: flex; flex-direction: column; gap: 16px;
+  overflow-y: auto; border-radius: 0; background: none; border: 0; box-shadow: none;
 }
 html[data-form="pad"] #control-shade .shade-inner { max-width: 760px; margin: 0 auto; padding: 70px 26px 30px; }
 html[data-form="fold"][data-cover="0"] #control-shade .shade-inner {
-  margin: 0; padding: 62px 16px 24px; gap: 14px 12px;
+  margin: 0; padding: 66px 16px 20px; gap: 14px;
 }
-html[data-form="fold"][data-cover="0"] .ctrl-conn {
-  grid-template-columns: repeat(2, 64px); grid-auto-rows: 64px; gap: 10px; }
-html[data-form="fold"][data-cover="0"] .ctrl-conn .ctrl-tile,
-html[data-form="fold"][data-cover="0"] .ctrl-quick .ctrl-tile { width: 64px; height: 64px; }
-html[data-form="fold"][data-cover="0"] .ctrl-quick { gap: 10px; }
-html[data-form="fold"][data-cover="0"] #control-shade .ctrl-sliders { grid-template-columns: 64px 64px; gap: 10px; }
-html[data-form="fold"][data-cover="0"] #control-shade .slider-row.v { width: 64px; height: 150px; }
+html[data-form="fold"][data-cover="0"] .ctrl-tile { height: 64px; }
+html[data-form="fold"][data-cover="0"] #control-shade .slider-row.v { width: 64px; height: 120px; }
 html[data-form="fold"][data-cover="0"] #control-shade .slider-row.v svg { width: 24px; height: 24px; }
-#control-shade .shade-head { grid-area: head; }
-#control-shade #ctrl-grid { display: contents; }
-.ctrl-conn { grid-area: conn; display: grid; grid-template-columns: repeat(2, 76px); grid-auto-rows: 76px;
-  gap: 12px; padding: 0; border-radius: 0; background: none; border: 0; width: max-content; }
-.ctrl-conn .ctrl-tile, .ctrl-quick .ctrl-tile { width: 76px; height: 76px; aspect-ratio: auto;
-  border-radius: 24px; background: rgba(255,255,255,.14); border: none; gap: 6px; }
-.ctrl-conn .ctrl-tile svg, .ctrl-quick .ctrl-tile svg { width: 26px; height: 26px; }
-.ctrl-conn .ctrl-tile small, .ctrl-quick .ctrl-tile small { font-size: 9.5px; }
-.ctrl-quick { grid-area: quick; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.ctrl-quick .ctrl-tile { width: auto; }
-.ctrl-quick .ctrl-tile.on { background: var(--accent); color: #fff; }
-.ctrl-quick .ctrl-tile.on small { color: rgba(255,255,255,.85); }
-/* HyperOS 式竖向滑条：80×176、圆角 24、图标 31（真机 brightness_panel_slider_* 等比） */
-#control-shade .ctrl-sliders { grid-area: vs; display: grid; grid-template-columns: 80px 80px; gap: 12px; }
+/* 头部：大时钟 + 日期；右侧状态图标 + 账户入口（对齐 miui_ns_qs_header_view） */
+.cc-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.cc-clock b { display: block; font-size: 34px; font-weight: 600; line-height: 1.05; letter-spacing: -.5px; }
+.cc-clock span { display: block; margin-top: 5px; font-size: 12px; color: var(--muted); }
+.cc-header-right { display: flex; align-items: center; gap: 12px; padding-top: 4px; }
+.cc-sicons { display: flex; align-items: center; gap: 8px; opacity: .92; }
+.cc-sicons .sb-ico { width: 16px; height: 16px; }
+.cc-avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(255,255,255,.18); color: #fff; transition: transform .16s ease; }
+.cc-avatar:active { transform: scale(.94); }
+html[data-theme="light"] .cc-avatar { background: rgba(20,23,42,.10); color: var(--text); }`nhtml[data-theme="light"] .ctrl-tile { background: rgba(20,23,42,.10); color: var(--text); }`nhtml[data-theme="light"] .ctrl-tile small { color: rgba(20,23,42,.58); }
+/* 4 列磁贴（miui_qs_paged_tile_layout） */
+#control-shade #ctrl-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.ctrl-conn, .ctrl-quick { display: contents; }
+.ctrl-tile { width: auto; height: 76px; aspect-ratio: auto; border-radius: 24px;
+  background: rgba(255,255,255,.14); border: none; gap: 6px; }
+.ctrl-tile svg { width: 26px; height: 26px; }
+.ctrl-tile small { font-size: 9.5px; }
+.ctrl-tile.on { background: var(--accent); color: #fff; }
+.ctrl-tile.on small { color: rgba(255,255,255,.85); }
+/* 竖向滑条：右对齐一行（80×140，圆角 24） */
+#control-shade .ctrl-sliders { display: flex; flex-direction: row; align-items: flex-end; justify-content: flex-end; gap: 12px; }
 #control-shade .slider-row.v {
-  width: 80px; height: 176px; border-radius: 24px;
+  width: 80px; height: 140px; border-radius: 24px;
   flex-direction: column; justify-content: flex-end; align-items: center;
   padding: 0; gap: 8px; position: relative; overflow: hidden;
   background: rgba(255,255,255,.16); border: none; touch-action: none; cursor: pointer; }
+/* 分页圆点（miui_qs_footer / MiuiPageIndicator） */
+#control-shade .ctrl-foot { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: auto; }
+.cc-dots { display: flex; align-items: center; gap: 6px; }
+.cc-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.35); }
+.cc-dots i.on { width: 18px; border-radius: 3px; background: #fff; }
+html[data-theme="light"] .cc-dots i { background: rgba(20,23,42,.25); }
+html[data-theme="light"] .cc-dots i.on { background: var(--accent); }
 /* 填充层：随数值平滑增高（比直接改渐变更顺滑） */
 #control-shade .slider-row.v::after {
   content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: var(--pct, 50%);
@@ -941,7 +949,7 @@ html[data-form="fold"][data-cover="0"] #control-shade .slider-row.v svg { width:
 /* 数值/图标绝对定位，避免 flex 溢出被 overflow:hidden 裁掉 */
 #control-shade .slider-row.v { display: block; padding: 0; }
 #control-shade .slider-row.v b { position: absolute; top: 9px; left: 0; right: 0; text-align: center; }
-#control-shade .slider-row.v svg { position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%); }
+#control-shade .slider-row.v svg { position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%); color: #10131c; }
 #control-shade .slider-row.v input[type=range] {
   position: absolute; left: 0; right: 0; top: 26px; bottom: 28px; width: 100%; height: auto; }
 #control-shade .slider-row.v input[type=range]::-webkit-slider-runnable-track {
@@ -1898,18 +1906,20 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
       <!-- 控制中心 -->
       <section id="control-shade" class="shade">
         <div class="shade-inner">
-          <div class="shade-head"><span id="ctrl-date"></span><span>控制中心</span></div>
+          <div class="cc-header">
+            <div class="cc-clock"><b id="cc-time">--:--</b><span id="cc-date"></span></div>
+            <div class="cc-header-right">
+              <span class="cc-sicons" id="cc-sicons"></span>
+              <button class="cc-avatar" data-a="open-settings" aria-label="设置"></button>
+            </div>
+          </div>
           <div class="ctrl-grid" id="ctrl-grid"></div>
           <div class="ctrl-sliders">
             <div class="slider-row" id="brightness-row"></div>
             <div class="slider-row" id="volume-row"></div>
           </div>
           <div class="ctrl-now" id="ctrl-now"></div>
-          <div class="ctrl-foot">
-            <button data-a="open-settings">系统设置</button>
-            <button data-a="open-recents">多任务</button>
-            <button data-a="power-menu">电源</button>
-          </div>
+          <div class="ctrl-foot"><span class="cc-dots"><i class="on"></i><i></i></span></div>
         </div>
       </section>
 
@@ -2493,6 +2503,8 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
     var ld = $('#lock-date'); if (ld) ld.textContent = dateCN(d);
     var nd = $('#notif-date'); if (nd) nd.textContent = fullDate(d);
     var cd = $('#ctrl-date'); if (cd) cd.textContent = fullDate(d);
+    var ct = $('#cc-time'); if (ct) ct.textContent = t;
+    var cd2 = $('#cc-date'); if (cd2) cd2.textContent = fullDate(d);
     var wc = $('#widget-clock'); if (wc) wc.textContent = t;
     var wd = $('#widget-date'); if (wd) wd.textContent = dateCN(d);
     /* 小组件按页渲染后可能有多张时钟卡，统一用 class 批量刷新 */
@@ -3377,6 +3389,15 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
     $('#volume-row').innerHTML = NM.svg(st.volume ? 'volume' : 'volumeOff', 19) +
       '<input type="range" min="0" max="100" value="' + st.volume + '" data-f="volume">' +
       '<b>' + st.volume + '%</b>';
+    /* 头部：状态图标 + 头像（HyperOS 构成：大时钟/日期 + 右侧图标与账户入口） */
+    var sic = $('#cc-sicons');
+    if (sic) {
+      var tone = st.theme === 'light' ? 'b' : 'w';
+      sic.innerHTML = NM.sicon('wifi', tone) + NM.sicon('signal', tone) +
+        NM.sicon('battery', tone, { level: S.battery });
+    }
+    var av = $('.cc-avatar'); if (av) av.innerHTML = NM.svg('person', 18);
+    NM.tickClock();
     NM.renderNowPlaying();
   };
   NM.renderNowPlaying = function () {
