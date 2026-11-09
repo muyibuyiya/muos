@@ -21,8 +21,8 @@
 
 - 来源：https://hyperos.mi.com/font/ （小米）
 - 许可：MiSans 字体许可协议（免费商用，禁止单独售卖字体文件）
-- 使用方式：`fonts/` 下保留 Light / Regular / Demibold 三个 woff2，`app.css` 中以 `@font-face` 声明，设置 → 显示和亮度 → 字体样式 → MiSans 时启用
-- 说明：原始包含 10 个字重，此处按界面实际用到的区间做映射，详见 `fonts/README.md`
+- 使用方式：`fonts/MiSansVF.woff2`（可变字体，wght 150–700），`app.css` 中以 `@font-face` 声明，设置 → 显示和亮度 → 字体样式和大小 → MiSans 时启用
+- 来源版本：MiSans VF **4.009**，从小米 14 Pro HyperOS OS4.0.7.0 固件 `product/fonts/MiSansVF.ttf` 提取（另存 `MiSansL3.otf` 未打包），详见 `fonts/README.md`
 
 ## 4. 生成脚本
 

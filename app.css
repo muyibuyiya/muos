@@ -1331,17 +1331,10 @@ html[data-textopt="1"] #display { text-wrap: pretty; font-kerning: normal; lette
 .fp-slider .fp-a.lg { font-size: 20px; }
 .fp-slider b { width: 46px; flex: none; text-align: right; font-size: 11px;
   font-weight: 400; color: var(--muted); }
+/* MiSans VF 4.009（HyperOS 4 真机可变字体）：wght 150–700，单文件无级粗细 */
 @font-face {
-  font-family: 'MiSans'; src: url('fonts/MiSans-Light.woff2') format('woff2');
-  font-weight: 300; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'MiSans'; src: url('fonts/MiSans-Regular.woff2') format('woff2');
-  font-weight: 400 500; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'MiSans'; src: url('fonts/MiSans-Demibold.woff2') format('woff2');
-  font-weight: 600 800; font-style: normal; font-display: swap;
+  font-family: 'MiSans'; src: url('fonts/MiSansVF.woff2') format('woff2');
+  font-weight: 150 700; font-style: normal; font-display: swap;
 }
 html[data-font="misans"] #display,
 html[data-font="misans"] button,

@@ -27,7 +27,13 @@
 
   /* 字重滑条档位名称（对应 MiSans 三个已打包字重） */
   function weightName(v) {
-    return ({ 300: '细', 400: '常规', 500: '中', 600: '半粗', 700: '粗' })[v] || String(v);
+    var n = +v;
+    if (n <= 200) return '极细';
+    if (n < 350) return '细';
+    if (n < 450) return '常规';
+    if (n < 550) return '中';
+    if (n < 650) return '半粗';
+    return '粗';
   }
 
   /* 常用任务：osimulator 的「从想做的事出发」 */
@@ -601,7 +607,7 @@
       };
       return demo +
         '<div class="fp-fonts">' + chips + '</div>' +
-        slider('fontWeight', '字体粗细', '细 ←→ 粗（映射到已打包的三个字重）', 300, 700, 100, fw, weightName(fw)) +
+        slider('fontWeight', '字体粗细', '150 ←→ 700 无级（真机 MiSansVF 可变轴）', 150, 700, 10, fw, weightName(fw)) +
         slider('fontScale', '字体大小', '影响全系统文字与控件', 0.85, 1.35, 0.01, scale.toFixed(2), Math.round(scale * 100) + '%') +
         '<div class="card"><div class="set-row"><span class="row-main"><b>文本排版优化</b>' +
         '<small>更均衡的断行与字距（text-wrap: pretty）</small></span>' +
