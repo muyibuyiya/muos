@@ -1035,6 +1035,9 @@
       if (r && r.t === 'nav' && r.page) PAGE_PARENT[r.page] = g.k;
     });
   });
+  PAGE_PARENT.account = 'account';
+  PAGE_PARENT.accountProfile = 'account';
+  PAGE_PARENT.accountLogin = 'account';
   function splitNav(active) {
     var cur = PAGE_PARENT[active] || active;
     var groups = GROUPS.filter(function (g) {
@@ -1042,6 +1045,9 @@
       return !g.hidden || S.settings.devOn;
     });
     return '<aside class="split-nav"><div class="split-head">设置</div>' +
+      '<button class="split-item acc' + (cur === 'account' ? ' active' : '') +
+      '" data-a="set-root" data-v="account">' +
+      '<span class="si">' + svg('person', 16) + '</span><span>MUSE 账户</span></button>' +
       groups.map(function (g) {
         return '<button class="split-item' + (g.k === cur ? ' active' : '') +
           '" data-a="set-root" data-v="' + g.k + '">' +

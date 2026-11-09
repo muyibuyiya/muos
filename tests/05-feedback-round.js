@@ -548,6 +548,10 @@ setTimeout(async () => {
     const ttl = d.querySelector('#view-settings .split-main .app-bar h1');
     ck('双栏右栏标题正确', !!ttl && ttl.textContent.indexOf('字体样式和大小') >= 0, ttl ? ttl.textContent : '');
     NM.pop('settings');
+    ck('左栏含账户入口', d.querySelector('#view-settings .split-nav').textContent.indexOf('MUSE 账户') >= 0);
+    NM.setPage('settings', 'account');
+    ck('账户页可从左栏打开并高亮', !!d.querySelector('#view-settings .split-item.acc.active'));
+    NM.setPage('settings', 'main');
     h.setAttribute('data-form', 'fold'); h.setAttribute('data-cover', '0');
     NM.renderView(S.views.settings);
     ck('横折叠内屏也是双栏', !!d.querySelector('#view-settings .set-split'));
@@ -558,6 +562,21 @@ setTimeout(async () => {
     NM.renderView(S.views.settings);
     ck('手机保持单栏', !d.querySelector('#view-settings .set-split'));
     NM.setPage('settings', 'main'); NM.goHome();
+  });
+
+  /* ---------- 17. 桌面小横条上滑唤出多任务 ---------- */
+  safe('桌面上滑多任务', () => {
+    S.settings.indUpAction = 'home'; S.settings.indUpHoldAction = 'recents';
+    S.settings.indHoldMs = 1000;
+    NM.goHome();
+    const disp = d.getElementById('display');
+    const ev = (t, x, y) => new w.MouseEvent(t, { clientX: x, clientY: y, buttons: 1, bubbles: true, cancelable: true });
+    disp.dispatchEvent(ev('pointerdown', 200, 930));
+    disp.dispatchEvent(ev('pointermove', 200, 860));
+    disp.dispatchEvent(ev('pointerup', 200, 860));
+    ck('桌面上滑进入多任务', S.screen === 'recents', S.screen);
+    NM.goHome();
+    ck('未打开面板时可退回桌面', S.screen === 'home');
   });
 
   console.log('\n通过 ' + pass + '/' + (pass + fail));

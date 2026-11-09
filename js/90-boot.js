@@ -252,7 +252,11 @@
   /* 小横条手势动作（可在 设置 → 系统导航与小横条 中配置） */
   function indAction(a) {
     if (a === 'recents') NM.openRecents();
-    else if (a === 'home') NM.goHome();
+    /* 「回主屏」在桌面时按 Android 习惯改为唤出多任务，否则等于空操作（用户会以为手势坏了） */
+    else if (a === 'home') {
+      if (S.screen === 'home' && !S.shade) NM.openRecents();
+      else NM.goHome();
+    }
     /* 'none'：不做任何事 */
   }
   function local(cx, cy) {
