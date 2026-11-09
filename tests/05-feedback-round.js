@@ -468,6 +468,21 @@ setTimeout(async () => {
     NM.refreshAppIcons(); NM.goHome();
   });
 
+  /* ---------- 14. MiSans 字体可选 ---------- */
+  safe('MiSans 字体', () => {
+    NM.launchApp('settings'); NM.push('settings', 'display');
+    ck('显示设置列出 MiSans', d.getElementById('view-settings').textContent.indexOf('MiSans') >= 0);
+    S.settings.fontStyle = 'misans'; NM.applySettings();
+    ck('字体样式写入 data-font', d.documentElement.getAttribute('data-font') === 'misans');
+    const css = Array.prototype.map.call(d.querySelectorAll('style'), s => s.textContent).join('\n');
+    ck('样式表声明 @font-face', css.indexOf('@font-face') >= 0 && css.indexOf('MiSans-Regular.woff2') >= 0);
+    ck('提供三个字重', css.indexOf('MiSans-Light.woff2') >= 0 && css.indexOf('MiSans-Demibold.woff2') >= 0);
+    ck('字体文件已随项目提供', fs.existsSync('fonts/MiSans-Regular.woff2'));
+    S.settings.fontStyle = 'default'; NM.applySettings();
+    ck('可切回默认字体', d.documentElement.getAttribute('data-font') === 'default');
+    NM.goHome();
+  });
+
   console.log('\n通过 ' + pass + '/' + (pass + fail));
   console.log('\n===== 运行时错误 (' + errs.length + ') =====');
   errs.slice(0, 12).forEach(e => console.log('  ' + e));

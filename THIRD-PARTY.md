@@ -1,4 +1,4 @@
-# 第三方素材与授权
+﻿# 第三方素材与授权
 
 本项目为模拟系统，界面与图标优先自行绘制（`js/06-iconpacks.js` 的三套线条图标）。
 下列第三方素材以 **构建期生成、运行时内置** 的方式使用，均允许再分发，但需保留署名与许可声明。
@@ -17,7 +17,14 @@
 - 使用方式：`@tabler/icons`（icons/outline）中的 11 个图标，重着色后以 SVG dataURL 内置于 `js/07-openpacks.js`
 - 图标：wifi、cell-signal-5、bluetooth、battery-4、battery-charging、alarm、moon、bulb（代手电筒）、plane、map-pin、nfc
 
-## 3. 生成脚本
+## 3. MiSans 字体
+
+- 来源：https://hyperos.mi.com/font/ （小米）
+- 许可：MiSans 字体许可协议（免费商用，禁止单独售卖字体文件）
+- 使用方式：`fonts/` 下保留 Light / Regular / Demibold 三个 woff2，`app.css` 中以 `@font-face` 声明，设置 → 显示和亮度 → 字体样式 → MiSans 时启用
+- 说明：原始包含 10 个字重，此处按界面实际用到的区间做映射，详见 `fonts/README.md`
+
+## 4. 生成脚本
 
 `tools/build-open-iconpacks.js` 负责从 npm 包读取 SVG、按 `#ffffff` / `#111111` 重着色、编码为 dataURL 并输出 `js/07-openpacks.js`。
 
@@ -26,7 +33,7 @@ npm install --no-save @material-design-icons/svg @tabler/icons
 node tools/build-open-iconpacks.js
 ```
 
-## 4. 未收录的来源（授权不适合再分发）
+## 5. 未收录的来源（授权不适合再分发）
 
 | 来源 | 原因 |
 | --- | --- |
@@ -35,7 +42,7 @@ node tools/build-open-iconpacks.js
 | 官方 ROM 提取（.mtz / 主题 APK） | 美术资源受著作权保护，仅限个人自用，禁止随项目分发 |
 | Perfect-Icons-Completion-Project | 图标由多位作者绘制、主题方单独授权，无统一再分发许可 |
 
-## 5. 商标声明
+## 6. 商标声明
 
 HyperOS / MIUI（小米）、One UI（三星）、OriginOS / Funtouch OS（vivo）、ColorOS（OPPO）均为各自权利人的商标。
 本项目与上述厂商无关联，内置图标为**按公开设计语言自行绘制**，不包含其原始素材。

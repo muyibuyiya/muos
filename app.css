@@ -1237,6 +1237,27 @@ html[data-shape="round"] .ic-box,
 html[data-shape="square"] .ic-box { border-radius: var(--ic-radius, 28%); }
 html[data-bold="1"] b, html[data-bold="1"] strong { font-weight: 700; }
 html[data-font="rounded"] #display { font-family: 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', sans-serif; letter-spacing: .3px; }
+/* MiSans（本地字体包）：三个字重各一个 woff2，按需加载 */
+@font-face {
+  font-family: 'MiSans'; src: url('fonts/MiSans-Light.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'MiSans'; src: url('fonts/MiSans-Regular.woff2') format('woff2');
+  font-weight: 400 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'MiSans'; src: url('fonts/MiSans-Demibold.woff2') format('woff2');
+  font-weight: 600 800; font-style: normal; font-display: swap;
+}
+html[data-font="misans"] #display,
+html[data-font="misans"] button,
+html[data-font="misans"] input,
+html[data-font="misans"] textarea {
+  font-family: 'MiSans', 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', sans-serif;
+}
+html[data-font="misans"] .term-body,
+html[data-font="misans"] .term-input { font-family: var(--mono); }
 html[data-font="serif"] #display { font-family: 'Songti SC', 'SimSun', Georgia, serif; }
 html[data-easy="1"] .app-icon .ic-box { width: 70px; height: 70px; }
 html[data-easy="1"] .app-icon .ic-name { font-size: 13px; }

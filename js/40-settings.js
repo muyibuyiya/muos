@@ -131,8 +131,16 @@
       H('字体与缩放'),
       SEG('字体大小', '影响全系统文字', 'fontScale', [O(.9, '小'), O(1, '标准'), O(1.12, '大')]),
       T('粗体字', '标题与设置项加粗', 'boldFont'),
-      SEG('字体样式', '系统字重风格', 'fontStyle', [
-        O('default', '默认'), O('rounded', '圆润'), O('serif', '衬线')]),
+      SEG('字体样式', '系统字重风格（MiSans 需加载本地字体文件）', 'fontStyle', [
+        O('default', '默认'), O('rounded', '圆润'), O('serif', '衬线'), O('misans', 'MiSans')]),
+      CUSTOM(function () {
+        if (S.settings.fontStyle !== 'misans') return '';
+        return '<div class="set-note" style="font-size:15.5px;line-height:1.9;color:var(--text)">' +
+          'MiSans 预览：墨韵随风起，系统界面 0123456789<br>' +
+          '<span style="font-weight:300">细体 Light</span> · ' +
+          '<span style="font-weight:400">常规 Regular</span> · ' +
+          '<span style="font-weight:600">半粗 Demibold</span></div>';
+      }),
       SEG('屏幕缩放', '整体控件尺寸', 'screenZoom', [O(.92, '小'), O(1, '标准'), O(1.1, '大')]),
       T('简易模式', '更大图标与更简洁的主屏布局', 'easyMode'),
       H('屏幕行为'),
