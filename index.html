@@ -1039,6 +1039,23 @@ html[data-form="flip"] .app-icon .ic-box { width: 52px; height: 52px; }
 .nav-row.danger b { color: var(--danger); }
 .set-block { padding: 13px 14px; margin-bottom: 7px; border-radius: 16px; background: var(--surface); border: 1px solid var(--stroke); }
 .set-note { font-size: 10.5px; line-height: 1.75; color: var(--muted); padding: 8px 6px; }
+/* ---------------- 平板 / 横折叠内屏：设置双栏（左列表 · 右详情） ---------------- */
+.set-split { flex: 1 1 auto; min-height: 0; display: flex; }
+.split-nav { width: 268px; flex: none; min-height: 0; overflow-y: auto;
+  padding: 62px 10px 24px; border-right: 1px solid var(--stroke);
+  background: color-mix(in srgb, var(--surface) 62%, transparent); }
+.split-head { font-size: 21px; font-weight: 600; color: var(--text); padding: 0 14px 12px; }
+.split-item { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+  padding: 9px 12px; border-radius: 13px; font-size: 13px; color: var(--text); margin-bottom: 2px;
+  transition: background .18s ease, color .18s ease, transform .16s ease; }
+.split-item .si { width: 28px; height: 28px; flex: none; border-radius: 9px; display: grid; place-items: center;
+  background: var(--surface-2); color: var(--accent); }
+.split-item.active { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+.split-item.active .si { background: color-mix(in srgb, var(--accent) 26%, transparent); }
+.split-item:active { transform: scale(.985); }
+.split-main { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.split-main > .app-body { flex: 1 1 auto; min-height: 0; }
+html[data-form="fold"][data-cover="0"] .split-nav { width: 232px; }
 .set-ic { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; flex: none;
   background: linear-gradient(140deg, rgba(138,180,255,.32), rgba(138,180,255,.12)); color: var(--accent); }
 .toggle { width: 42px; height: 24px; border-radius: 14px; background: rgba(255,255,255,.16); position: relative; flex: none;
@@ -6581,6 +6598,34 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
   /* ============================================================
      设置应用：覆盖 30-more-apps.js 里的旧版 7 分组设置
      ============================================================ */
+  /* ---------- 平板 / 横折叠内屏：设置双栏（左列表 · 右详情） ---------- */
+  function isSplitForm() {
+    var h = document.documentElement, f = h.getAttribute('data-form');
+    if (f === 'pad') return true;
+    /* fold 的 data-cover=0 表示已展开使用内屏 */
+    return f === 'fold' && h.getAttribute('data-cover') === '0';
+  }
+  /* 子页面 → 所属一级分类，用于左栏高亮 */
+  var PAGE_PARENT = {};
+  GROUPS.forEach(function (g) {
+    (g.rows || []).forEach(function (r) {
+      if (r && r.t === 'nav' && r.page) PAGE_PARENT[r.page] = g.k;
+    });
+  });
+  function splitNav(active) {
+    var cur = PAGE_PARENT[active] || active;
+    var groups = GROUPS.filter(function (g) {
+      if (g.k === 'update' || g.k === 'about') return false;
+      return !g.hidden || S.settings.devOn;
+    });
+    return '<aside class="split-nav"><div class="split-head">设置</div>' +
+      groups.map(function (g) {
+        return '<button class="split-item' + (g.k === cur ? ' active' : '') +
+          '" data-a="set-root" data-v="' + g.k + '">' +
+          '<span class="si">' + svg(g.i, 16) + '</span><span>' + esc(g.t) + '</span></button>';
+      }).join('') + '</aside>';
+  }
+
   var pages = {};
   var pageTitles = { main: '设置', about: '关于本机' };
 
@@ -6602,13 +6647,13 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
       ' · MUOS 4.0 · HyperOS 风格 · ' + (S.settings.accountLoggedIn ? '已登录本机账户' : '未登录账户') + '</small></div>' +
       svg('chevron', 16) + '</div>' +
       taskSectionHtml() +
-      '<div class="section-title">全部设置 · ' + groups.length + ' 项</div>' +
-      groups.map(function (g) {
+      (isSplitForm() ? '' : '<div class="section-title">全部设置 · ' + groups.length + ' 项</div>') +
+      (isSplitForm() ? '' : groups.map(function (g) {
         return '<div class="set-row nav-row" data-a="set-jump" data-v="' + g.k + '">' +
           '<span class="set-ic">' + svg(g.i, 18) + '</span>' +
           '<span class="row-main"><b>' + esc(g.t) + '</b><small>' + esc(g.s) + '</small></span>' +
           svg('chevron', 16) + '</div>';
-      }).join('') +
+      }).join('')) +
       '<div class="set-note" style="margin-top:16px">所有设置都会立即生效并保存在本机浏览器。纯前端模拟，不访问任何真实硬件或数据。</div>' +
       '</div>' + NM.endBar();
   };
@@ -6629,7 +6674,20 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
   });
   pages.about = function (v) { return NM.aboutHTML(v); };
 
+  /* 双栏包裹：仅在平板 / 折叠内屏生效，手机与外屏保持原样 */
+  var rawPages = {};
+  Object.keys(pages).forEach(function (k) { rawPages[k] = pages[k]; });
+  Object.keys(pages).forEach(function (k) {
+    pages[k] = function (v, p) {
+      var out = rawPages[k](v, p);
+      if (!isSplitForm()) return out;
+      return '<div class="set-split">' + splitNav(k) +
+        '<div class="split-main">' + out + '</div></div>';
+    };
+  });
+
   var SUB_TITLES = {
+    fontsDetail: '字体样式和大小', iconPacks: '图标包', appIconPacks: '应用图标包',
     navDetail: '系统导航方式', taskShortcuts: '自定义快捷任务',
     account: 'MUSE 账户', accountLogin: '登录 MUSE 账户', accountProfile: '个人资料',
     dndDetail: '勿扰例外与安排', appNotif: '应用通知', hiddenApps: '隐藏的应用',
@@ -7100,6 +7158,7 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
     pages: pages,
     actions: {
       'set-jump': function (v, k) { NM.push('settings', k); },
+      'set-root': function (v, k) { NM.setPage('settings', k); },
       'set-nav': function (v, k) { NM.push('settings', k); },
       'set-page': function (v, k) { NM.push('settings', k); },
       'set-tg': function (v, k) { NM.setToggle(k, v); },
