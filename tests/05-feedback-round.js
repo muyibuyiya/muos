@@ -445,6 +445,29 @@ setTimeout(async () => {
     NM.goHome();
   });
 
+  /* ---------- 13. 应用图标包：按 app id 覆盖字形 ---------- */
+  safe('应用图标包', () => {
+    const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    const cam = NM.appById('camera');
+    ck('默认应用图标使用 SVG 字形', NM.iconBox(cam, 30).indexOf('<svg') > 0 && NM.iconBox(cam, 30).indexOf('ic-glyph') < 0);
+    const id = NM.importAppPack({ name: '测试应用包', apps: { camera: { i: { w: PNG, b: PNG } } } });
+    ck('可导入应用图标包', !!id && NM.findAppPack(id) !== null);
+    S.settings.appIconPack = 'pack:' + id;
+    const html = NM.iconBox(cam, 30);
+    ck('命中应用改用位图字形', html.indexOf('img class="ic-glyph"') > 0 && html.indexOf('image/png') > 0);
+    ck('位图字形尺寸随传入 size', html.indexOf('width:30px') > 0);
+    ck('未收录应用保持默认字形', NM.iconBox(NM.appById('phone'), 30).indexOf('<svg') > 0);
+    NM.refreshAppIcons();
+    ck('刷新后桌面重绘为位图字形', d.querySelectorAll('#display img.ic-glyph').length > 0);
+    NM.launchApp('settings'); NM.push('settings', 'appIconPacks');
+    const txt = d.getElementById('view-settings').textContent;
+    ck('设置页列出应用图标包', txt.indexOf('导入包 · 测试应用包') >= 0 && txt.indexOf('使用中') >= 0);
+    NM.deleteAppPack(id);
+    ck('删除后回落默认字形', S.settings.appIconPack === 'default' &&
+      NM.iconBox(cam, 30).indexOf('<svg') > 0);
+    NM.refreshAppIcons(); NM.goHome();
+  });
+
   console.log('\n通过 ' + pass + '/' + (pass + fail));
   console.log('\n===== 运行时错误 (' + errs.length + ') =====');
   errs.slice(0, 12).forEach(e => console.log('  ' + e));

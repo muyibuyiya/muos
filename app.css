@@ -967,6 +967,11 @@ html[data-form="flip"] .app-icon .ic-box { width: 52px; height: 52px; }
 .ip-preview { display: flex; align-items: center; gap: 15px; padding: 13px 16px; }
 .ip-preview .ip-pv { display: inline-flex; align-items: center; justify-content: center; color: var(--text); }
 .ip-preview svg.sb-ico, .ip-preview img.sb-ico { width: 20px; height: 20px; }
+/* 应用图标包：位图字形与预览条 */
+.ic-box img.ic-glyph { display: block; object-fit: contain; }
+.ap-preview { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 13px 16px; }
+.ap-preview .ic-box { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center;
+  color: #fff; flex: none; box-shadow: 0 4px 12px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.2); }
 .nav-row.danger b { color: var(--danger); }
 .set-block { padding: 13px 14px; margin-bottom: 7px; border-radius: 16px; background: var(--surface); border: 1px solid var(--stroke); }
 .set-note { font-size: 10.5px; line-height: 1.75; color: var(--muted); padding: 8px 6px; }

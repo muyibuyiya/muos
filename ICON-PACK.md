@@ -129,7 +129,34 @@ node tools/convert-oneui-pack.js <解压目录>/materialicons open-iconpacks/one
 - **转换坑位**：Android 颜色是 `#AARRGGBB`，`#00000000` 表示全透明。若把它当成实色，电池、勿扰、NFC 会被填成实心块（脚本已处理）。
 - **授权**：素材源自三星应用内资源，仅建议个人自用；`open-iconpacks/` 已在 `.gitignore` 中，不随仓库分发。
 
-## 6. 相关 API
+## 6. 应用图标包（桌面）
+
+与状态栏图标包是两套独立体系，入口：**设置 → 系统风格 → 应用图标包**。
+
+```json
+{
+  "name": "One UI 应用字形",
+  "author": "Samsung One UI icons · OneUIProject/oneui-icons",
+  "apps": {
+    "camera": { "i": { "w": "data:image/svg+xml;base64,...", "b": "..." }, "bg": ["#8f98ad", "#565f75"] }
+  }
+}
+```
+
+- `apps.<应用id>`：应用 id 见桌面/`NM.APPS`（如 `phone/messages/camera/photos/music/settings/store/files`）。
+- `i`：`{ w, b }` 字形；`bg` 可选，不给就沿用该应用的默认渐变。
+- 未收录的应用自动使用默认字形；删除包或选「默认」立即还原。
+- 设置项：`S.settings.appIconPack` = `default` | `pack:<id>`；导入时自动启用。
+- 覆盖点只有 `NM.iconBox`（`08-apppacks.js` 包装 `00-core.js`），通知、最近任务、小部件预览里的图标也会一起生效。
+- One UI 素材转换：
+
+```bash
+node tools/convert-oneui-app-pack.js <解压目录>/materialicons open-iconpacks/oneui-apps.json
+```
+
+产物覆盖 22 个应用（`wallet`/`terminal` 素材内没有，保持默认）。
+
+## 7. 相关 API
 
 ```js
 NM.importIconPack(obj)        // → id，失败抛 Error（格式错误 / 包为空 / 存储不足）
@@ -137,6 +164,11 @@ NM.deleteIconPack(id)         // 删除；若正在使用则回落 auto
 NM.getIconPacks()             // → [{ id, name, author, icons }]
 NM.findIconPack(id)
 NM.sicon(name, tone, opt)     // tone: 'w' | 'b'；opt.level 仅 battery 使用
+NM.importAppPack(obj)        // → id（应用图标包，按 app id 覆盖字形）
+NM.deleteAppPack(id)
+NM.getAppPacks() / NM.findAppPack(id)
+NM.iconBox(app, size)        // 被 08-apppacks.js 包装：命中包内应用时输出 <img class="ic-glyph">
+NM.refreshAppIcons()         // 换包后重绘桌面 / Dock / 抽屉 / 侧边栏
 ```
 
 设置项：`S.settings.iconPack` = `auto` | `default` | `builtin:<style>` | `pack:<id>`。

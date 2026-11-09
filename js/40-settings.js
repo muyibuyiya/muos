@@ -183,6 +183,7 @@
       TXT('MUOS 默认采用「生命感美学」风格：柔光玻璃、点按光效、可自由编排的桌面与超级岛。', ''),
       H('图标'),
       NAV('图标包', '状态栏图标绘制风格 · 导入自定义图标包', 'iconPacks'),
+      NAV('应用图标包', '桌面应用图标字形 · 导入自定义包', 'appIconPacks'),
       H('已安装主题'),
       ACT('默认主题 · 柔光', '当前使用', 'theme-pick', 'default'),
       ACT('深色曜石', '切换到高对比深色', 'theme-pick', 'obsidian'),
@@ -530,6 +531,38 @@
         '<span class="ip-side"><span class="ip-go">下载</span></span></div>' +
         '</div>' +
         '<div class="set-note">图标包只保存在本机浏览器（localStorage），不上传任何服务器。内置开源素材：Material Symbols（Apache-2.0）、Tabler Icons（MIT），来源与许可见 ICON-PACK.md。</div>';
+    },
+    /* 应用图标包：按应用 id 覆盖桌面字形，选中「默认」立即还原 */
+    appIconPacks: function (v) {
+      var cur = S.settings.appIconPack || 'default';
+      var list = [{ id: 'default', t: '默认（MUOS 字形）', s: '渐变底 + 内置线条字形' }];
+      (NM.getAppPacks ? NM.getAppPacks() : []).forEach(function (p) {
+        list.push({ id: 'pack:' + p.id, t: '导入包 · ' + p.name,
+          s: (p.author ? p.author + ' · ' : '') + Object.keys(p.apps).length + ' 个应用', pid: p.id });
+      });
+      var rows = list.map(function (o) {
+        return '<div class="set-row icon-pack-row' + (cur === o.id ? ' sel' : '') + '"' +
+          ' data-a="set-act" data-v="ap-use|' + o.id + '">' +
+          '<span class="row-main"><b>' + esc(o.t) + '</b><small>' + esc(o.s) + '</small></span>' +
+          '<span class="ip-side">' +
+          (cur === o.id ? '<span class="ip-cur">使用中</span>' : '') +
+          (o.pid ? '<span class="ip-del" data-a="set-act" data-v="ap-del|' + o.pid + '">删除</span>' : '') +
+          '</span></div>';
+      }).join('');
+      var demo = ['phone', 'messages', 'camera', 'photos', 'music', 'settings', 'store', 'files']
+        .map(function (id) { var a = NM.appById ? NM.appById(id) : null; return a ? NM.iconBox(a, 30) : ''; }).join('');
+      return '<div class="card ap-preview">' + demo + '</div>' +
+        '<div class="set-note">预览为当前生效的应用图标包；未在包内出现的应用自动使用默认图标。</div>' +
+        '<div class="card">' + rows + '</div>' +
+        '<div class="card">' +
+        '<div class="set-row icon-pack-row" data-a="set-act" data-v="ap-import|">' +
+        '<span class="row-main"><b>导入应用图标包</b><small>选择 .json（apps: { 应用id: { i: { w, b } } }）</small></span>' +
+        '<span class="ip-side"><span class="ip-go">选择文件</span></span></div>' +
+        '<div class="set-row icon-pack-row" data-a="set-act" data-v="ap-export|">' +
+        '<span class="row-main"><b>下载格式模板</b><small>应用 id 可从桌面图标或开发者页查看</small></span>' +
+        '<span class="ip-side"><span class="ip-go">下载</span></span></div>' +
+        '</div>' +
+        '<div class="set-note">图标包只保存在本机浏览器（localStorage），不上传服务器；第三方应用图标素材请确认授权后自用。</div>';
     },
     /* MUOS 账户中心：点设置首页顶部卡片进入，个人资料与退出登录在资料子页，本机信息收纳在这里 */
     account: function (v) { return accountPage(v); },
@@ -1290,6 +1323,62 @@
       var a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'muos-iconpack-template.json';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      NM.island('模板已下载', 1400);
+    },
+    /* ---------- 应用图标包 ---------- */
+    'ap-use': function (v, id) {
+      S.settings.appIconPack = id || 'default';
+      NM.save();
+      if (NM.refreshAppIcons) NM.refreshAppIcons();
+      changed(v, '应用图标已更新');
+    },
+    'ap-del': function (v, id) {
+      NM.deleteAppPack(id);
+      if (NM.refreshAppIcons) NM.refreshAppIcons();
+      NM.save(); NM.island('已删除应用图标包', 1400); NM.renderView(v);
+    },
+    'ap-import': function (v) {
+      var inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = '.json,application/json';
+      inp.addEventListener('change', function () {
+        var f = inp.files && inp.files[0]; if (!f) return;
+        var fr = new FileReader();
+        fr.onload = function () {
+          try {
+            var id = NM.importAppPack(JSON.parse(String(fr.result)));
+            S.settings.appIconPack = 'pack:' + id;
+            NM.save();
+            if (NM.refreshAppIcons) NM.refreshAppIcons();
+            NM.island('应用图标包已导入并启用', 1600);
+            NM.renderView(v);
+          } catch (e) {
+            NM.dialog('导入失败', String((e && e.message) || e),
+              [{ t: '好', a: 'close-dialog', primary: true }]);
+          }
+        };
+        fr.readAsText(f);
+      });
+      inp.click();
+    },
+    'ap-export': function () {
+      var sample = {
+        name: '我的应用图标包', author: '你的名字',
+        apps: {
+          camera: {
+            i: {
+              w: 'data:image/svg+xml;base64,<白色 24x24 字形>',
+              b: 'data:image/svg+xml;base64,<黑色 24x24 字形>'
+            },
+            bg: ['#8f98ad', '#565f75']
+          }
+        }
+      };
+      var blob = new Blob([JSON.stringify(sample, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'muos-app-iconpack-template.json';
       document.body.appendChild(a); a.click();
       setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
       NM.island('模板已下载', 1400);
