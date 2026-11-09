@@ -65,6 +65,8 @@ button { background: none; border: 0; cursor: pointer; }
 input, textarea { outline: none; border: 0; background: none; }
 ::-webkit-scrollbar { width: 0; height: 0; }
 .scroll { overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+/* 桌面端鼠标拖拽滚动进行中：统一抓手光标、禁选中，避免拖出蓝色选区 */
+body.ms-drag, body.ms-drag * { cursor: grabbing !important; user-select: none !important; -webkit-user-select: none !important; }
 
 /* ---------------- 桌面舞台与机身 ---------------- */
 #stage { display: flex; flex-direction: column; align-items: center; gap: 18px;
@@ -8765,7 +8767,11 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
     var el = e.target.closest && e.target.closest('.dr-app'); if (!el) return;
     var id = el.getAttribute('data-app');
     drLong = false;
-    drTimer = W.setTimeout(function () { drLong = true; NM.addHomeIcon(id); NM.renderDrawer(); }, 520);
+    drTimer = W.setTimeout(function () {
+      /* 正在用鼠标拖动滚动列表时，松手前不算长按 */
+      if (NM.dragScrollActive) return;
+      drLong = true; NM.addHomeIcon(id); NM.renderDrawer();
+    }, 520);
   });
   document.addEventListener('pointerup', function () { clearTimeout(drTimer); });
   document.addEventListener('pointercancel', function () { clearTimeout(drTimer); });
@@ -9322,6 +9328,80 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
       }, true);
     });
   })();
+  /* 桌面端鼠标拖拽滚动：按住任意可滚动区域即可拖动（触摸/触控笔走原生滚动）
+     有些内核里 .scroll 容器只响应滚轮，鼠标拖动无效，这里统一补齐 */
+  NM.scrollParentOf = function (el) {
+    while (el && el !== document.body) {
+      if (el.nodeType === 1) {
+        var cs;
+        try { cs = getComputedStyle(el); } catch (err) { cs = null; }
+        if (cs) {
+          var canY = /(auto|scroll|overlay)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 2;
+          var canX = /(auto|scroll|overlay)/.test(cs.overflowX) && el.scrollWidth > el.clientWidth + 2;
+          if (canY || canX) return el;
+        }
+      }
+      el = el.parentElement;
+    }
+    return null;
+  };
+  (function bindDragScroll() {
+    var box = null, pid = null, sx = 0, sy = 0, top0 = 0, left0 = 0, axis = '', lastEnd = 0;
+    /* 这些区域有自己的拖动语义，交给各自的手势处理 */
+    var SKIP = '#ctrl-grid, #cc-detail, #pin, #lock, #home, .pages-viewport, .pages-track, ' +
+      '.recent-track, #recents, #statusbar, .slider-row, #power-menu';
+    function endDrag(e) {
+      if (!box) return;
+      try { if (pid !== null) box.releasePointerCapture(pid); } catch (err) { }
+      if (axis) lastEnd = Date.now();
+      box = null; pid = null; axis = '';
+      NM.dragScrollActive = false;
+      document.body.classList.remove('ms-drag');
+    }
+    document.addEventListener('pointerdown', function (e) {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      if (typeof e.button === 'number' && e.button !== 0) return;
+      var t = e.target;
+      if (!t || !t.closest) return;
+      if (t.closest(SKIP)) return;
+      if (t.closest('input, textarea, select, option, [contenteditable="true"]')) return;
+      var sc = NM.scrollParentOf(t);
+      if (!sc) return;
+      box = sc; pid = e.pointerId;
+      sx = e.clientX; sy = e.clientY;
+      top0 = sc.scrollTop; left0 = sc.scrollLeft;
+      axis = '';
+    }, true);
+    document.addEventListener('pointermove', function (e) {
+      if (!box || e.pointerId !== pid) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!axis) {
+        if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+        var canY = box.scrollHeight > box.clientHeight + 2;
+        var canX = box.scrollWidth > box.clientWidth + 2;
+        if (canY && Math.abs(dy) >= Math.abs(dx)) axis = 'y';
+        else if (canX && Math.abs(dx) > Math.abs(dy)) axis = 'x';
+        else { box = null; return; }
+        document.body.classList.add('ms-drag');
+        NM.dragScrollActive = true;
+        try { box.setPointerCapture(e.pointerId); } catch (err) { }
+        NM.markInput();
+      }
+      if (axis === 'y') box.scrollTop = top0 - dy;
+      else box.scrollLeft = left0 - dx;
+      e.preventDefault();
+    }, true);
+    ['pointerup', 'pointercancel'].forEach(function (t) {
+      document.addEventListener(t, endDrag, true);
+    });
+    /* 拖过之后紧跟的 click 不当成点击，避免误触开关/进入下一页 */
+    document.addEventListener('click', function (e) {
+      if (lastEnd && Date.now() - lastEnd < 320) {
+        e.stopPropagation(); e.preventDefault();
+        lastEnd = 0;
+      }
+    }, true);
+  })();
   document.addEventListener('keydown', function (e) {
     NM.markInput();
     var t = e.target;
@@ -9389,6 +9469,9 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
   }
   display.addEventListener('pointerdown', function (e) {
     if (e.target.closest('input,textarea,[type=range],.side-key')) return;
+    /* 抽屉与下拉面板内部交给拖拽滚动，避免松手时被判成主屏/顶部手势 */
+    if (e.target.closest && e.target.closest('#app-drawer')) return;
+    if (S.shade && e.target.closest && e.target.closest('.shade')) return;
     /* 编辑模式下小组件由专属拖动系统接管，不进入全局手势 */
     if (S.editing && e.target.closest && e.target.closest('.widget-card')) return;
     G.x = e.clientX; G.y = e.clientY; G.t = Date.now();
