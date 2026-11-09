@@ -146,7 +146,12 @@ node tools/convert-oneui-pack.js <解压目录>/materialicons open-iconpacks/one
 - `apps.<应用id>`：应用 id 见桌面/`NM.APPS`（如 `phone/messages/camera/photos/music/settings/store/files`）。
 - `i`：`{ w, b }` 字形；`bg` 可选，不给就沿用该应用的默认渐变。
 - 未收录的应用自动使用默认字形；删除包或选「默认」立即还原。
-- 设置项：`S.settings.appIconPack` = `default` | `pack:<id>`；导入时自动启用。
+- 设置项：`S.settings.appIconPack` = `default` | `builtin:<id>` | `pack:<id>`；导入时自动启用。
+- 内置包：`builtin:oneui`（`js/09-apppack-oneui.js`，22 个应用字形，来自 One UI Asset Studio 素材；版权提示见 `THIRD-PARTY.md`）。重新生成方式：
+  ```bash
+  node tools/convert-oneui-app-pack.js <解压目录>/materialicons open-iconpacks/oneui-apps.json
+  # 再把 JSON 包进 09 模块（结构：NM.BUILTIN_APP_PACKS.oneui = { name, author, apps }）
+  ```
 - 覆盖点只有 `NM.iconBox`（`08-apppacks.js` 包装 `00-core.js`），通知、最近任务、小部件预览里的图标也会一起生效。
 - One UI 素材转换：
 
