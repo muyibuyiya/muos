@@ -975,6 +975,11 @@ html[data-form="flip"] .app-icon .ic-box { width: 52px; height: 52px; }
 .ip-preview { display: flex; align-items: center; gap: 15px; padding: 13px 16px; }
 .ip-preview .ip-pv { display: inline-flex; align-items: center; justify-content: center; color: var(--text); }
 .ip-preview svg.sb-ico, .ip-preview img.sb-ico { width: 20px; height: 20px; }
+/* 应用图标包：位图字形与预览条 */
+.ic-box img.ic-glyph { display: block; object-fit: contain; }
+.ap-preview { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 13px 16px; }
+.ap-preview .ic-box { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center;
+  color: #fff; flex: none; box-shadow: 0 4px 12px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.2); }
 .nav-row.danger b { color: var(--danger); }
 .set-block { padding: 13px 14px; margin-bottom: 7px; border-radius: 16px; background: var(--surface); border: 1px solid var(--stroke); }
 .set-note { font-size: 10.5px; line-height: 1.75; color: var(--muted); padding: 8px 6px; }
@@ -1881,6 +1886,7 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
 
 
 
+
 <script>
 /* ==== 00-core.js ==== */
 /* ============================================================
@@ -2110,7 +2116,7 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
     privacyDisplay: false, privacyAuto: false, privacyMax: false, privacyPin: false,
     /* 壁纸与风格 / 主题 */
     wall: 'hyper', palette: 'blue', paletteIcons: false, lockWallSame: true,
-    dynamicLock: false, themePack: 'hyperos', iconShape: 'squircle', iconPack: 'auto',
+    dynamicLock: false, themePack: 'hyperos', iconShape: 'squircle', iconPack: 'auto', appIconPack: 'default',
     /* 主屏幕 */
     swipeSearch: true, homeLayout: 'both', homeGrid: '4x6', appGrid: '4x6',
     folderGrid: '3x3', swipeUpDrawer: true, addNewApps: true,
@@ -2639,6 +2645,88 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
   NM.OPEN_PACKS["tabler"] = {"name":"Tabler Icons","author":"Tabler","license":"MIT","src":"https://github.com/tabler/tabler-icons","style":"线条 / 2px 圆头","icons":{"wifi":{"w":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci13aWZpIiA+IDxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIgLz4gPHBhdGggZD0iTTEyIDE4bC4wMSAwIiAvPiA8cGF0aCBkPSJNOS4xNzIgMTUuMTcyYTQgNCAwIDAgMSA1LjY1NiAwIiAvPiA8cGF0aCBkPSJNNi4zNDMgMTIuMzQzYTggOCAwIDAgMSAxMS4zMTQgMCIgLz4gPHBhdGggZD0iTTMuNTE1IDkuNTE1YzQuNjg2IC00LjY4NyAxMi4yODQgLTQuNjg3IDE3IDAiIC8+IDwvc3ZnPg==","b":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci13aWZpIiA+IDxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIgLz4gPHBhdGggZD0iTTEyIDE4bC4wMSAwIiAvPiA8cGF0aCBkPSJNOS4xNzIgMTUuMTcyYTQgNCAwIDAgMSA1LjY1NiAwIiAvPiA8cGF0aCBkPSJNNi4zNDMgMTIuMzQzYTggOCAwIDAgMSAxMS4zMTQgMCIgLz4gPHBhdGggZD0iTTMuNTE1IDkuNTE1YzQuNjg2IC00LjY4NyAxMi4yODQgLTQuNjg3IDE3IDAiIC8+IDwvc3ZnPg=="},"signal":{"w":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1jZWxsLXNpZ25hbC01IiA+IDxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIgLz4gPHBhdGggZD0iTTIwIDIwaC0xNS4yNjlhLjczMSAuNzMxIDAgMCAxIC0uNTE3IC0xLjI0OWwxNC41MzcgLTE0LjUzN2EuNzMxIC43MzEgMCAwIDEgMS4yNDkgLjUxN3YxNS4yNjkiIC8+IDxwYXRoIGQ9Ik0xNiA3djEzIiAvPiA8cGF0aCBkPSJNMTIgMjB2LTkiIC8+IDxwYXRoIGQ9Ik04IDIwdi01IiAvPiA8L3N2Zz4=","b":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1jZWxsLXNpZ25hbC01IiA+IDxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIgLz4gPHBhdGggZD0iTTIwIDIwaC0xNS4yNjlhLjczMSAuNzMxIDAgMCAxIC0uNTE3IC0xLjI0OWwxNC41MzcgLTE0LjUzN2EuNzMxIC43MzEgMCAwIDEgMS4yNDkgLjUxN3YxNS4yNjkiIC8+IDxwYXRoIGQ9Ik0xNiA3djEzIiAvPiA8cGF0aCBkPSJNMTIgMjB2LTkiIC8+IDxwYXRoIGQ9Ik04IDIwdi01IiAvPiA8L3N2Zz4="},"bt":{"w":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1ibHVldG9vdGgiID4gPHBhdGggc3Ryb2tlPSJub25lIiBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIiAvPiA8cGF0aCBkPSJNNyA4bDEwIDhsLTUgNGwwIC0xNmw1IDRsLTEwIDgiIC8+IDwvc3ZnPg==","b":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1ibHVldG9vdGgiID4gPHBhdGggc3Ryb2tlPSJub25lIiBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIiAvPiA8cGF0aCBkPSJNNyA4bDEwIDhsLTUgNGwwIC0xNmw1IDRsLTEwIDgiIC8+IDwvc3ZnPg=="},"battery":{"w":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1iYXR0ZXJ5LTQiID4gPHBhdGggc3Ryb2tlPSJub25lIiBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIiAvPiA8cGF0aCBkPSJNNiA3aDExYTIgMiAwIDAgMSAyIDJ2LjVhLjUgLjUgMCAwIDAgLjUgLjVhLjUgLjUgMCAwIDEgLjUgLjV2M2EuNSAuNSAwIDAgMSAtLjUgLjVhLjUgLjUgMCAwIDAgLS41IC41di41YTIgMiAwIDAgMSAtMiAyaC0xMWEyIDIgMCAwIDEgLTIgLTJ2LTZhMiAyIDAgMCAxIDIgLTIiIC8+IDxwYXRoIGQ9Ik03IDEwbDAgNCIgLz4gPHBhdGggZD0iTTEwIDEwbDAgNCIgLz4gPHBhdGggZD0iTTEzIDEwbDAgNCIgLz4gPHBhdGggZD0iTTE2IDEwbDAgNCIgLz4gPC9zdmc+","b":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1iYXR0ZXJ5LTQiID4gPHBhdGggc3Ryb2tlPSJub25lIiBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIiAvPiA8cGF0aCBkPSJNNiA3aDExYTIgMiAwIDAgMSAyIDJ2LjVhLjUgLjUgMCAwIDAgLjUgLjVhLjUgLjUgMCAwIDEgLjUgLjV2M2EuNSAuNSAwIDAgMSAtLjUgLjVhLjUgLjUgMCAwIDAgLS41IC41di41YTIgMiAwIDAgMSAtMiAyaC0xMWEyIDIgMCAwIDEgLTIgLTJ2LTZhMiAyIDAgMCAxIDIgLTIiIC8+IDxwYXRoIGQ9Ik03IDEwbDAgNCIgLz4gPHBhdGggZD0iTTEwIDEwbDAgNCIgLz4gPHBhdGggZD0iTTEzIDEwbDAgNCIgLz4gPHBhdGggZD0iTTE2IDEwbDAgNCIgLz4gPC9zdmc+"},"charging":{"w":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1iYXR0ZXJ5LWNoYXJnaW5nIiA+IDxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIgLz4gPHBhdGggZD0iTTE2IDdoMWEyIDIgMCAwIDEgMiAydi41YS41IC41IDAgMCAwIC41IC41YS41IC41IDAgMCAxIC41IC41djNhLjUgLjUgMCAwIDEgLS41IC41YS41IC41IDAgMCAwIC0uNSAuNXYuNWEyIDIgMCAwIDEgLTIgMmgtMiIgLz4gPHBhdGggZD0iTTggN2gtMmEyIDIgMCAwIDAgLTIgMnY2YTIgMiAwIDAgMCAyIDJoMSIgLz4gPHBhdGggZD0iTTEyIDhsLTIgNGgzbC0yIDQiIC8+IDwvc3ZnPg==","b":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1iYXR0ZXJ5LWNoYXJnaW5nIiA+IDxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIgLz4gPHBhdGggZD0iTTE2IDdoMWEyIDIgMCAwIDEgMiAydi41YS41IC41IDAgMCAwIC41IC41YS41IC41IDAgMCAxIC41IC41djNhLjUgLjUgMCAwIDEgLS41IC41YS41IC41IDAgMCAwIC0uNSAuNXYuNWEyIDIgMCAwIDEgLTIgMmgtMiIgLz4gPHBhdGggZD0iTTggN2gtMmEyIDIgMCAwIDAgLTIgMnY2YTIgMiAwIDAgMCAyIDJoMSIgLz4gPHBhdGggZD0iTTEyIDhsLTIgNGgzbC0yIDQiIC8+IDwvc3ZnPg=="},"alarm":{"w":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1hbGFybSIgPiA8cGF0aCBzdHJva2U9Im5vbmUiIGQ9Ik0wIDBoMjR2MjRIMHoiIGZpbGw9Im5vbmUiIC8+IDxwYXRoIGQ9Ik01IDEzYTcgNyAwIDEgMCAxNCAwYTcgNyAwIDEgMCAtMTQgMCIgLz4gPHBhdGggZD0iTTEyIDEwbDAgM2wyIDAiIC8+IDxwYXRoIGQ9Ik03IDRsLTIuNzUgMiIgLz4gPHBhdGggZD0iTTE3IDRsMi43NSAyIiAvPiA8L3N2Zz4=","b":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1hbGFybSIgPiA8cGF0aCBzdHJva2U9Im5vbmUiIGQ9Ik0wIDBoMjR2MjRIMHoiIGZpbGw9Im5vbmUiIC8+IDxwYXRoIGQ9Ik01IDEzYTcgNyAwIDEgMCAxNCAwYTcgNyAwIDEgMCAtMTQgMCIgLz4gPHBhdGggZD0iTTEyIDEwbDAgM2wyIDAiIC8+IDxwYXRoIGQ9Ik03IDRsLTIuNzUgMiIgLz4gPHBhdGggZD0iTTE3IDRsMi43NSAyIiAvPiA8L3N2Zz4="},"dnd":{"w":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1tb29uIiA+IDxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIgLz4gPHBhdGggZD0iTTEyIDNjLjEzMiAwIC4yNjMgMCAuMzkzIDBhNy41IDcuNSAwIDAgMCA3LjkyIDEyLjQ0NmE5IDkgMCAxIDEgLTguMzEzIC0xMi40NTRsMCAuMDA4IiAvPiA8L3N2Zz4=","b":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1tb29uIiA+IDxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIgLz4gPHBhdGggZD0iTTEyIDNjLjEzMiAwIC4yNjMgMCAuMzkzIDBhNy41IDcuNSAwIDAgMCA3LjkyIDEyLjQ0NmE5IDkgMCAxIDEgLTguMzEzIC0xMi40NTRsMCAuMDA4IiAvPiA8L3N2Zz4="},"torch":{"w":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1idWxiIiA+IDxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIgLz4gPHBhdGggZD0iTTMgMTJoMW04IC05djFtOCA4aDFtLTE1LjQgLTYuNGwuNyAuN20xMi4xIC0uN2wtLjcgLjciIC8+IDxwYXRoIGQ9Ik05IDE2YTUgNSAwIDEgMSA2IDBhMy41IDMuNSAwIDAgMCAtMSAzYTIgMiAwIDAgMSAtNCAwYTMuNSAzLjUgMCAwIDAgLTEgLTMiIC8+IDxwYXRoIGQ9Ik05LjcgMTdsNC42IDAiIC8+IDwvc3ZnPg==","b":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1idWxiIiA+IDxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIgLz4gPHBhdGggZD0iTTMgMTJoMW04IC05djFtOCA4aDFtLTE1LjQgLTYuNGwuNyAuN20xMi4xIC0uN2wtLjcgLjciIC8+IDxwYXRoIGQ9Ik05IDE2YTUgNSAwIDEgMSA2IDBhMy41IDMuNSAwIDAgMCAtMSAzYTIgMiAwIDAgMSAtNCAwYTMuNSAzLjUgMCAwIDAgLTEgLTMiIC8+IDxwYXRoIGQ9Ik05LjcgMTdsNC42IDAiIC8+IDwvc3ZnPg=="},"airplane":{"w":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1wbGFuZSIgPiA8cGF0aCBzdHJva2U9Im5vbmUiIGQ9Ik0wIDBoMjR2MjRIMHoiIGZpbGw9Im5vbmUiIC8+IDxwYXRoIGQ9Ik0xNiAxMGg0YTIgMiAwIDAgMSAwIDRoLTRsLTQgN2gtM2wyIC03aC00bC0yIDJoLTNsMiAtNGwtMiAtNGgzbDIgMmg0bC0yIC03aDNsNCA3IiAvPiA8L3N2Zz4=","b":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1wbGFuZSIgPiA8cGF0aCBzdHJva2U9Im5vbmUiIGQ9Ik0wIDBoMjR2MjRIMHoiIGZpbGw9Im5vbmUiIC8+IDxwYXRoIGQ9Ik0xNiAxMGg0YTIgMiAwIDAgMSAwIDRoLTRsLTQgN2gtM2wyIC03aC00bC0yIDJoLTNsMiAtNGwtMiAtNGgzbDIgMmg0bC0yIC03aDNsNCA3IiAvPiA8L3N2Zz4="},"gps":{"w":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1tYXAtcGluIiA+IDxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIgLz4gPHBhdGggZD0iTTkgMTFhMyAzIDAgMSAwIDYgMGEzIDMgMCAwIDAgLTYgMCIgLz4gPHBhdGggZD0iTTE3LjY1NyAxNi42NTdsLTQuMjQzIDQuMjQzYTIgMiAwIDAgMSAtMi44MjcgMGwtNC4yNDQgLTQuMjQzYTggOCAwIDEgMSAxMS4zMTQgMCIgLz4gPC9zdmc+","b":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1tYXAtcGluIiA+IDxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIgLz4gPHBhdGggZD0iTTkgMTFhMyAzIDAgMSAwIDYgMGEzIDMgMCAwIDAgLTYgMCIgLz4gPHBhdGggZD0iTTE3LjY1NyAxNi42NTdsLTQuMjQzIDQuMjQzYTIgMiAwIDAgMSAtMi44MjcgMGwtNC4yNDQgLTQuMjQzYTggOCAwIDEgMSAxMS4zMTQgMCIgLz4gPC9zdmc+"},"nfc":{"w":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1uZmMiID4gPHBhdGggc3Ryb2tlPSJub25lIiBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIiAvPiA8cGF0aCBkPSJNMTEgMjBhMyAzIDAgMCAxIC0zIC0zdi0xMWw1IDUiIC8+IDxwYXRoIGQ9Ik0xMyA0YTMgMyAwIDAgMSAzIDN2MTFsLTUgLTUiIC8+IDxwYXRoIGQ9Ik00IDdhMyAzIDAgMCAxIDMgLTNoMTBhMyAzIDAgMCAxIDMgM3YxMGEzIDMgMCAwIDEgLTMgM2gtMTBhMyAzIDAgMCAxIC0zIC0zbDAgLTEwIiAvPiA8L3N2Zz4=","b":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiBpY29uLXRhYmxlciBpY29ucy10YWJsZXItb3V0bGluZSBpY29uLXRhYmxlci1uZmMiID4gPHBhdGggc3Ryb2tlPSJub25lIiBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIiAvPiA8cGF0aCBkPSJNMTEgMjBhMyAzIDAgMCAxIC0zIC0zdi0xMWw1IDUiIC8+IDxwYXRoIGQ9Ik0xMyA0YTMgMyAwIDAgMSAzIDN2MTFsLTUgLTUiIC8+IDxwYXRoIGQ9Ik00IDdhMyAzIDAgMCAxIDMgLTNoMTBhMyAzIDAgMCAxIDMgM3YxMGEzIDMgMCAwIDEgLTMgM2gtMTBhMyAzIDAgMCAxIC0zIC0zbDAgLTEwIiAvPiA8L3N2Zz4="}}};
 })(window);
 
+
+/* ==== 08-apppacks.js ==== */
+/* ============================================================
+   MUOS — 08-apppacks.js
+   应用图标包：按应用 id 覆盖桌面字形（可选覆盖底色）
+   · 不改默认样式；仅在 S.settings.appIconPack = pack:<id> 时生效
+   · 包格式：{ name, author, apps: { 应用id: { i: {w,b}, bg: [c1,c2] } } }
+   ============================================================ */
+(function (W) {
+  'use strict';
+  var NM = W.NM, S = NM.S;
+  var KEY = 'muos-apppacks-v1';
+  var baseIconBox = NM.iconBox;
+
+  var packs = [];
+  try {
+    packs = JSON.parse(W.localStorage.getItem(KEY) || '[]');
+    if (!Array.isArray(packs)) packs = [];
+  } catch (e) { packs = []; }
+  NM.APP_PACKS = packs;
+
+  function persist() {
+    try { W.localStorage.setItem(KEY, JSON.stringify(packs)); }
+    catch (e) { throw new Error('图标包过大，浏览器存储空间不足'); }
+  }
+  NM.getAppPacks = function () { return packs; };
+  NM.findAppPack = function (id) {
+    return packs.filter(function (p) { return p.id === id; })[0] || null;
+  };
+  NM.importAppPack = function (obj) {
+    if (!obj || typeof obj !== 'object' || !obj.apps || typeof obj.apps !== 'object')
+      throw new Error('格式不正确：需要 { name, apps: { 应用id: { i: {w,b} } } }');
+    if (!Object.keys(obj.apps).length) throw new Error('图标包为空');
+    var id = 'a' + Date.now().toString(36);
+    packs.push({
+      id: id,
+      name: String(obj.name || '自定义应用图标包').slice(0, 40),
+      author: String(obj.author || '').slice(0, 40),
+      apps: obj.apps
+    });
+    NM.APP_PACKS = packs;
+    persist();
+    return id;
+  };
+  NM.deleteAppPack = function (id) {
+    packs = packs.filter(function (p) { return p.id !== id; });
+    NM.APP_PACKS = packs;
+    persist();
+    if ((S.settings.appIconPack || '') === 'pack:' + id) S.settings.appIconPack = 'default';
+  };
+  function active() {
+    var id = S.settings.appIconPack || 'default';
+    return id.indexOf('pack:') === 0 ? NM.findAppPack(id.slice(5)) : null;
+  }
+
+  /* 覆盖 iconBox：命中包内应用时用位图字形，其余全部走原始实现 */
+  NM.iconBox = function (app, size) {
+    var pk = active();
+    if (!pk || !app) return baseIconBox(app, size);
+    var item = pk.apps[app.id];
+    if (!item) return baseIconBox(app, size);
+    var set = item.i || item.icon;
+    if (!set) return baseIconBox(app, size);
+    var url = typeof set === 'string' ? set : (set.w || set.b || '');
+    if (!url) return baseIconBox(app, size);
+    var s = size || 20;
+    var bg = item.bg || null;
+    var c1 = (bg && bg[0]) || app.c1, c2 = (bg && bg[1]) || app.c2;
+    return '<span class="ic-box" style="background:linear-gradient(140deg,' + c1 + ',' + c2 + ')">' +
+      '<img class="ic-glyph" src="' + url + '" alt="" style="width:' + s + 'px;height:' + s + 'px">' +
+      '</span>';
+  };
+
+  /* 换包后重绘所有出现应用图标的位置 */
+  NM.refreshAppIcons = function () {
+    if (NM.renderPages) NM.renderPages();
+    if (NM.renderDock) NM.renderDock();
+    if (NM.renderDrawer) NM.renderDrawer();
+    if (NM.renderEdge) NM.renderEdge();
+    if (NM.renderStatusBarIcons) NM.renderStatusBarIcons();
+  };
+})(window);
 
 /* ==== 10-system.js ==== */
 /* ============================================================
@@ -5540,6 +5628,7 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
       TXT('MUOS 默认采用「生命感美学」风格：柔光玻璃、点按光效、可自由编排的桌面与超级岛。', ''),
       H('图标'),
       NAV('图标包', '状态栏图标绘制风格 · 导入自定义图标包', 'iconPacks'),
+      NAV('应用图标包', '桌面应用图标字形 · 导入自定义包', 'appIconPacks'),
       H('已安装主题'),
       ACT('默认主题 · 柔光', '当前使用', 'theme-pick', 'default'),
       ACT('深色曜石', '切换到高对比深色', 'theme-pick', 'obsidian'),
@@ -5887,6 +5976,38 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
         '<span class="ip-side"><span class="ip-go">下载</span></span></div>' +
         '</div>' +
         '<div class="set-note">图标包只保存在本机浏览器（localStorage），不上传任何服务器。内置开源素材：Material Symbols（Apache-2.0）、Tabler Icons（MIT），来源与许可见 ICON-PACK.md。</div>';
+    },
+    /* 应用图标包：按应用 id 覆盖桌面字形，选中「默认」立即还原 */
+    appIconPacks: function (v) {
+      var cur = S.settings.appIconPack || 'default';
+      var list = [{ id: 'default', t: '默认（MUOS 字形）', s: '渐变底 + 内置线条字形' }];
+      (NM.getAppPacks ? NM.getAppPacks() : []).forEach(function (p) {
+        list.push({ id: 'pack:' + p.id, t: '导入包 · ' + p.name,
+          s: (p.author ? p.author + ' · ' : '') + Object.keys(p.apps).length + ' 个应用', pid: p.id });
+      });
+      var rows = list.map(function (o) {
+        return '<div class="set-row icon-pack-row' + (cur === o.id ? ' sel' : '') + '"' +
+          ' data-a="set-act" data-v="ap-use|' + o.id + '">' +
+          '<span class="row-main"><b>' + esc(o.t) + '</b><small>' + esc(o.s) + '</small></span>' +
+          '<span class="ip-side">' +
+          (cur === o.id ? '<span class="ip-cur">使用中</span>' : '') +
+          (o.pid ? '<span class="ip-del" data-a="set-act" data-v="ap-del|' + o.pid + '">删除</span>' : '') +
+          '</span></div>';
+      }).join('');
+      var demo = ['phone', 'messages', 'camera', 'photos', 'music', 'settings', 'store', 'files']
+        .map(function (id) { var a = NM.appById ? NM.appById(id) : null; return a ? NM.iconBox(a, 30) : ''; }).join('');
+      return '<div class="card ap-preview">' + demo + '</div>' +
+        '<div class="set-note">预览为当前生效的应用图标包；未在包内出现的应用自动使用默认图标。</div>' +
+        '<div class="card">' + rows + '</div>' +
+        '<div class="card">' +
+        '<div class="set-row icon-pack-row" data-a="set-act" data-v="ap-import|">' +
+        '<span class="row-main"><b>导入应用图标包</b><small>选择 .json（apps: { 应用id: { i: { w, b } } }）</small></span>' +
+        '<span class="ip-side"><span class="ip-go">选择文件</span></span></div>' +
+        '<div class="set-row icon-pack-row" data-a="set-act" data-v="ap-export|">' +
+        '<span class="row-main"><b>下载格式模板</b><small>应用 id 可从桌面图标或开发者页查看</small></span>' +
+        '<span class="ip-side"><span class="ip-go">下载</span></span></div>' +
+        '</div>' +
+        '<div class="set-note">图标包只保存在本机浏览器（localStorage），不上传服务器；第三方应用图标素材请确认授权后自用。</div>';
     },
     /* MUOS 账户中心：点设置首页顶部卡片进入，个人资料与退出登录在资料子页，本机信息收纳在这里 */
     account: function (v) { return accountPage(v); },
@@ -6647,6 +6768,62 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
       var a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'muos-iconpack-template.json';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      NM.island('模板已下载', 1400);
+    },
+    /* ---------- 应用图标包 ---------- */
+    'ap-use': function (v, id) {
+      S.settings.appIconPack = id || 'default';
+      NM.save();
+      if (NM.refreshAppIcons) NM.refreshAppIcons();
+      changed(v, '应用图标已更新');
+    },
+    'ap-del': function (v, id) {
+      NM.deleteAppPack(id);
+      if (NM.refreshAppIcons) NM.refreshAppIcons();
+      NM.save(); NM.island('已删除应用图标包', 1400); NM.renderView(v);
+    },
+    'ap-import': function (v) {
+      var inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = '.json,application/json';
+      inp.addEventListener('change', function () {
+        var f = inp.files && inp.files[0]; if (!f) return;
+        var fr = new FileReader();
+        fr.onload = function () {
+          try {
+            var id = NM.importAppPack(JSON.parse(String(fr.result)));
+            S.settings.appIconPack = 'pack:' + id;
+            NM.save();
+            if (NM.refreshAppIcons) NM.refreshAppIcons();
+            NM.island('应用图标包已导入并启用', 1600);
+            NM.renderView(v);
+          } catch (e) {
+            NM.dialog('导入失败', String((e && e.message) || e),
+              [{ t: '好', a: 'close-dialog', primary: true }]);
+          }
+        };
+        fr.readAsText(f);
+      });
+      inp.click();
+    },
+    'ap-export': function () {
+      var sample = {
+        name: '我的应用图标包', author: '你的名字',
+        apps: {
+          camera: {
+            i: {
+              w: 'data:image/svg+xml;base64,<白色 24x24 字形>',
+              b: 'data:image/svg+xml;base64,<黑色 24x24 字形>'
+            },
+            bg: ['#8f98ad', '#565f75']
+          }
+        }
+      };
+      var blob = new Blob([JSON.stringify(sample, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'muos-app-iconpack-template.json';
       document.body.appendChild(a); a.click();
       setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
       NM.island('模板已下载', 1400);
