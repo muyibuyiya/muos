@@ -48,6 +48,7 @@
   };
   function active() {
     var id = S.settings.appIconPack || 'default';
+    if (id.indexOf('builtin:') === 0) return (NM.BUILTIN_APP_PACKS || {})[id.slice(8)] || null;
     return id.indexOf('pack:') === 0 ? NM.findAppPack(id.slice(5)) : null;
   }
 

@@ -596,6 +596,9 @@
     h.setAttribute('data-indtint', st.indTint === false ? '0' : '1');
     $('#dim-veil').style.opacity = String(clamp((100 - st.brightness) / 100 * .72, 0, .72));
     $('#display').style.fontSize = (14 * (st.fontScale || 1)) + 'px';
+    h.style.setProperty('--fw-ui', String(st.fontWeight || 400));
+    h.setAttribute('data-fw', String(st.fontWeight || 400));
+    h.setAttribute('data-textopt', st.textOptimize ? '1' : '0');
     NM.renderStatusBarIcons();
     NM.renderNavBar();
   };

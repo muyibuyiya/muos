@@ -25,6 +25,11 @@
   var O = function (v, label) { return [v, label]; };
   var YESNO = [O(true, '开'), O(false, '关')];
 
+  /* 字重滑条档位名称（对应 MiSans 三个已打包字重） */
+  function weightName(v) {
+    return ({ 300: '细', 400: '常规', 500: '中', 600: '半粗', 700: '粗' })[v] || String(v);
+  }
+
   /* 常用任务：osimulator 的「从想做的事出发」 */
   var TASKS = [
     { t: '连接 Wi-Fi', s: '打开或关闭无线网络', p: 'connections' },
@@ -129,18 +134,8 @@
         O('vivid', '鲜艳'), O('natural', '自然')]),
       SL('白平衡', '冷 ←→ 暖', 'whiteBalance', 0, 100, ''),
       H('字体与缩放'),
-      SEG('字体大小', '影响全系统文字', 'fontScale', [O(.9, '小'), O(1, '标准'), O(1.12, '大')]),
+      NAV('字体样式和大小', '字体 · 粗细 · 字号 · 排版优化', 'fontsDetail'),
       T('粗体字', '标题与设置项加粗', 'boldFont'),
-      SEG('字体样式', '系统字重风格（MiSans 需加载本地字体文件）', 'fontStyle', [
-        O('default', '默认'), O('rounded', '圆润'), O('serif', '衬线'), O('misans', 'MiSans')]),
-      CUSTOM(function () {
-        if (S.settings.fontStyle !== 'misans') return '';
-        return '<div class="set-note" style="font-size:15.5px;line-height:1.9;color:var(--text)">' +
-          'MiSans 预览：墨韵随风起，系统界面 0123456789<br>' +
-          '<span style="font-weight:300">细体 Light</span> · ' +
-          '<span style="font-weight:400">常规 Regular</span> · ' +
-          '<span style="font-weight:600">半粗 Demibold</span></div>';
-      }),
       SEG('屏幕缩放', '整体控件尺寸', 'screenZoom', [O(.92, '小'), O(1, '标准'), O(1.1, '大')]),
       T('简易模式', '更大图标与更简洁的主屏布局', 'easyMode'),
       H('屏幕行为'),
@@ -544,6 +539,11 @@
     appIconPacks: function (v) {
       var cur = S.settings.appIconPack || 'default';
       var list = [{ id: 'default', t: '默认（MUOS 字形）', s: '渐变底 + 内置线条字形' }];
+      (NM.BUILTIN_APP_PACKS ? Object.keys(NM.BUILTIN_APP_PACKS) : []).forEach(function (k) {
+        var b = NM.BUILTIN_APP_PACKS[k];
+        list.push({ id: 'builtin:' + k, t: '内置 · ' + b.name,
+          s: '随系统提供 · ' + Object.keys(b.apps).length + ' 个应用' });
+      });
       (NM.getAppPacks ? NM.getAppPacks() : []).forEach(function (p) {
         list.push({ id: 'pack:' + p.id, t: '导入包 · ' + p.name,
           s: (p.author ? p.author + ' · ' : '') + Object.keys(p.apps).length + ' 个应用', pid: p.id });
@@ -571,6 +571,43 @@
         '<span class="ip-side"><span class="ip-go">下载</span></span></div>' +
         '</div>' +
         '<div class="set-note">图标包只保存在本机浏览器（localStorage），不上传服务器；第三方应用图标素材请确认授权后自用。</div>';
+    },
+    /* 字体样式和大小：参照 HyperOS 的「预览 + 字体卡 + 两根滑条 + 排版优化」结构 */
+    fontsDetail: function (v) {
+      var st = S.settings, scale = st.fontScale || 1, fw = st.fontWeight || 400;
+      var fonts = [
+        { k: 'default', t: '默认' },
+        { k: 'rounded', t: '圆润' },
+        { k: 'serif', t: '衬线' },
+        { k: 'misans', t: 'MiSans', mi: true }
+      ];
+      var chips = fonts.map(function (f) {
+        return '<button class="fp-chip' + (st.fontStyle === f.k ? ' on' : '') + '"' +
+          ' data-a="set-act" data-v="font-pick|' + f.k + '"' +
+          (f.mi ? ' style="font-family:MiSans,\'PingFang SC\',sans-serif"' : '') + '>' +
+          esc(f.t) + '</button>';
+      }).join('');
+      var demo = '<div class="fp-demo" id="font-demo" style="font-size:' + Math.round(15 * scale) +
+        'px;font-weight:' + fw + '">MUOS 的使命是，把「感动人心」的细节做进每一次点按，' +
+        '让每个人都能享受科技带来的美好生活。' +
+        '<span class="fp-demo-sub">排版预览 · 0123456789 · ABCdef</span></div>';
+      var slider = function (key, label, sub, min, max, step, val, text) {
+        return '<div class="set-block fp-srow"><div class="row-main"><b>' + label + '</b>' +
+          '<small>' + sub + '</small></div>' +
+          '<div class="fp-slider"><span class="fp-a">A</span>' +
+          '<input type="range" min="' + min + '" max="' + max + '" step="' + step + '" value="' + val +
+          '" data-f="set:' + key + '">' +
+          '<span class="fp-a lg">A</span><b id="' + key + '-val">' + text + '</b></div></div>';
+      };
+      return demo +
+        '<div class="fp-fonts">' + chips + '</div>' +
+        slider('fontWeight', '字体粗细', '细 ←→ 粗（映射到已打包的三个字重）', 300, 700, 100, fw, weightName(fw)) +
+        slider('fontScale', '字体大小', '影响全系统文字与控件', 0.85, 1.35, 0.01, scale.toFixed(2), Math.round(scale * 100) + '%') +
+        '<div class="card"><div class="set-row"><span class="row-main"><b>文本排版优化</b>' +
+        '<small>更均衡的断行与字距（text-wrap: pretty）</small></span>' +
+        '<span class="toggle ' + (st.textOptimize ? 'on' : '') + '" data-a="set-tg" data-v="textOptimize"></span></div></div>' +
+        '<div class="set-note">MiSans 由小米提供（授权见 THIRD-PARTY.md），当前打包 Light / Regular / Demibold 三档；' +
+        '滑条选到中间档位时会落到最近的已加载字重。</div>';
     },
     /* MUOS 账户中心：点设置首页顶部卡片进入，个人资料与退出登录在资料子页，本机信息收纳在这里 */
     account: function (v) { return accountPage(v); },
@@ -1391,6 +1428,11 @@
       setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
       NM.island('模板已下载', 1400);
     },
+    'font-pick': function (v, k) {
+      S.settings.fontStyle = k || 'default';
+      NM.applySettings(); NM.save(); NM.renderView(v);
+      NM.island('字体已切换', 1200);
+    },
     'open-home-editor': function (v) { NM.goHome(); setTimeout(function () { NM.openHomeEditor(); }, 60); },
     'reset-home': function (v) {
       S.data.desktop = JSON.parse(JSON.stringify(NM.DEFAULT_DATA.desktop));
@@ -1603,6 +1645,20 @@
     onField: function (v, k, val, t) {
       if (k === 'set-q') { v.state.q = val; NM.renderSettingsSearch(v, val); return; }
       if (k === 'set-appq') { v.state.appQ = val; NM.renderView(v); return; }
+      if (k === 'set:fontWeight' || k === 'set:fontScale') {
+        var fk = k.slice(4);
+        S.settings[fk] = +val;
+        NM.applySettings(); NM.save(); NM.emit('settings');
+        var demoEl = document.getElementById('font-demo');
+        if (demoEl) {
+          demoEl.style.fontSize = Math.round(15 * (S.settings.fontScale || 1)) + 'px';
+          demoEl.style.fontWeight = String(S.settings.fontWeight || 400);
+        }
+        var lab = document.getElementById(fk + '-val');
+        if (lab) lab.textContent = fk === 'fontWeight'
+          ? weightName(+val) : Math.round(+val * 100) + '%';
+        return;
+      }
       if (k.indexOf('set:') === 0) {
         var key = k.slice(4);
         S.settings[key] = +val;

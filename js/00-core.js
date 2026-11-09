@@ -218,7 +218,7 @@
     /* 显示 */
     theme: 'dark', darkSchedule: false, brightness: 82, adaptiveBright: false,
     extraBright: false, motion: 'adaptive', eyeShield: false, eyeSchedule: false,
-    screenMode: 'vivid', whiteBalance: 50, fontScale: 1, boldFont: false,
+    screenMode: 'vivid', whiteBalance: 50, fontScale: 1, fontWeight: 400, textOptimize: false, boldFont: false,
     fontStyle: 'default', screenZoom: 1, resolution: 'fhd',
     easyMode: false, edgePanel: false, touchSensitivity: false,
     chargeInfo: true, screenSaver: false, cameraCutout: false,

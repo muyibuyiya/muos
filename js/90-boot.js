@@ -171,6 +171,44 @@
     else v.state[f] = t.value;
   });
 
+  /* 竖向滑条（控制中心亮度 / 音量）：按住面板任意位置可拖动
+     原生 input[type=range] 的竖向映射在部分内核里不响应拖动，这里直接按坐标换算 */
+  (function bindVerticalSliders() {
+    ['#brightness-row', '#volume-row'].forEach(function (sel) {
+      var row = $(sel); if (!row) return;
+      var dragging = false;
+      function apply(clientY) {
+        var inp = row.querySelector('input[type=range]'); if (!inp) return;
+        var r = row.getBoundingClientRect();
+        if (!r.height) return;
+        var pct = clamp(1 - (clientY - r.top) / r.height, 0, 1);
+        var min = +inp.min || 0, max = +inp.max || 100;
+        var val = Math.round(min + (max - min) * pct);
+        if (+inp.value !== val) {
+          inp.value = val;
+          inp.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        row.style.setProperty('--pct', val + '%');
+      }
+      row.addEventListener('pointerdown', function (e) {
+        dragging = true; apply(e.clientY);
+        try { row.setPointerCapture(e.pointerId); } catch (err) { }
+        e.preventDefault(); e.stopPropagation();
+      });
+      row.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        apply(e.clientY);
+        e.preventDefault(); e.stopPropagation();
+      });
+      ['pointerup', 'pointercancel'].forEach(function (t) {
+        row.addEventListener(t, function (e) {
+          dragging = false;
+          try { row.releasePointerCapture(e.pointerId); } catch (err) { }
+        });
+      });
+    });
+  })();
+
   /* ============================================================
      四、键盘：回车、ESC 返回、方向键、终端历史
      ============================================================ */

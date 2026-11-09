@@ -468,19 +468,64 @@ setTimeout(async () => {
     NM.refreshAppIcons(); NM.goHome();
   });
 
-  /* ---------- 14. MiSans 字体可选 ---------- */
+  /* ---------- 14. 字体样式和大小（MiSans + 粗细/字号滑条） ---------- */
   safe('MiSans 字体', () => {
-    NM.launchApp('settings'); NM.push('settings', 'display');
-    ck('显示设置列出 MiSans', d.getElementById('view-settings').textContent.indexOf('MiSans') >= 0);
+    NM.launchApp('settings'); NM.push('settings', 'fontsDetail');
+    const t = d.getElementById('view-settings').textContent;
+    ck('字体页列出 MiSans', t.indexOf('MiSans') >= 0);
+    ck('字体页有粗细滑条', !!d.querySelector('[data-f="set:fontWeight"]') &&
+      d.querySelector('[data-f="set:fontWeight"]').getAttribute('step') === '100');
+    ck('字体页有字号滑条', !!d.querySelector('[data-f="set:fontScale"]'));
+    ck('字体页有排版优化开关', t.indexOf('文本排版优化') >= 0);
     S.settings.fontStyle = 'misans'; NM.applySettings();
     ck('字体样式写入 data-font', d.documentElement.getAttribute('data-font') === 'misans');
+    S.settings.fontWeight = 600; NM.applySettings();
+    ck('字重写入 data-fw 与 CSS 变量', d.documentElement.getAttribute('data-fw') === '600' &&
+      d.documentElement.style.getPropertyValue('--fw-ui') === '600');
+    S.settings.textOptimize = true; NM.applySettings();
+    ck('排版优化写入 data-textopt', d.documentElement.getAttribute('data-textopt') === '1');
     const css = Array.prototype.map.call(d.querySelectorAll('style'), s => s.textContent).join('\n');
     ck('样式表声明 @font-face', css.indexOf('@font-face') >= 0 && css.indexOf('MiSans-Regular.woff2') >= 0);
     ck('提供三个字重', css.indexOf('MiSans-Light.woff2') >= 0 && css.indexOf('MiSans-Demibold.woff2') >= 0);
     ck('字体文件已随项目提供', fs.existsSync('fonts/MiSans-Regular.woff2'));
-    S.settings.fontStyle = 'default'; NM.applySettings();
+    S.settings.fontStyle = 'default'; S.settings.fontWeight = 400; S.settings.textOptimize = false;
+    NM.applySettings();
     ck('可切回默认字体', d.documentElement.getAttribute('data-font') === 'default');
     NM.goHome();
+  });
+
+  /* ---------- 15. 控制中心：浅色半透 / 竖向滑块拖动 / 内置应用包 ---------- */
+  safe('控制中心与内置应用包', () => {
+    const css = Array.prototype.map.call(d.querySelectorAll('style'), s => s.textContent).join('\n');
+    ck('浅色主题有白色半透面板', css.indexOf('html[data-theme="light"] .shade') >= 0 &&
+      css.indexOf('rgba(247, 249, 255, .74)') >= 0);
+    ck('浅色主题覆盖磁贴/滑块', css.indexOf('html[data-theme="light"] .ctrl-conn .ctrl-tile') >= 0 &&
+      css.indexOf('html[data-theme="light"] #control-shade .slider-row.v::after') >= 0);
+    ck('面板有展开动画', css.indexOf('shadeChild') >= 0 && css.indexOf('.shade.on .shade-inner > *') >= 0);
+    ck('浅色下控制中心面板本身为白半透', css.indexOf('html[data-theme="light"] #control-shade .shade-inner') >= 0);
+    ck('滑条数值绝对定位避免被裁', css.indexOf('slider-row.v b { position: absolute') >= 0);
+
+    NM.showShade('control');
+    const row = d.getElementById('brightness-row');
+    const inp = row.querySelector('input[type=range]');
+    row.getBoundingClientRect = () => ({ top: 100, height: 200, bottom: 300, left: 0, right: 56, width: 56 });
+    const before = S.settings.brightness;
+    row.dispatchEvent(new w.MouseEvent('pointerdown', { bubbles: true, clientY: 120 }));
+    ck('竖向滑块按下顶部调高', S.settings.brightness > before && S.settings.brightness >= 88, S.settings.brightness);
+    const high = S.settings.brightness;
+    row.dispatchEvent(new w.MouseEvent('pointermove', { bubbles: true, clientY: 280 }));
+    ck('继续拖动可调低', S.settings.brightness < high && S.settings.brightness <= 30, S.settings.brightness);
+    ck('滑条填充随值更新', row.style.getPropertyValue('--pct') !== '');
+    row.dispatchEvent(new w.MouseEvent('pointerup', { bubbles: true, clientY: 280 }));
+    NM.hideShade();
+
+    ck('内置 One UI 应用包已注册', !!(NM.BUILTIN_APP_PACKS && NM.BUILTIN_APP_PACKS.oneui));
+    S.settings.appIconPack = 'builtin:oneui';
+    const camHtml = NM.iconBox(NM.appById('camera'), 30);
+    ck('内置包覆盖应用字形', camHtml.indexOf('ic-glyph') > 0 && camHtml.indexOf('image/svg') > 0);
+    NM.launchApp('settings'); NM.push('settings', 'appIconPacks');
+    ck('设置页列出内置应用包', d.getElementById('view-settings').textContent.indexOf('内置 · ') >= 0);
+    S.settings.appIconPack = 'default'; NM.refreshAppIcons(); NM.goHome();
   });
 
   console.log('\n通过 ' + pass + '/' + (pass + fail));

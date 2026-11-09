@@ -37,7 +37,7 @@ node tools/build-open-iconpacks.js
 
 | 来源 | 原因 |
 | --- | --- |
-| OneUIProject/oneui-icons（MIT 打包，880+ One UI SVG） | 素材本身为三星应用内资源，MIT 仅覆盖该仓库打包文件；公开发布需自行评估商标与原创性风险，故只作为**个人导入**来源，不内置 |
+| OneUIProject/oneui-icons（MIT 打包，880+ One UI SVG） | 已按用户要求把 **22 个应用字形**内置到 `js/09-apppack-oneui.js`（设置 → 应用图标包 → 「内置 · One UI」）。素材源自三星应用内资源，MIT 仅覆盖该仓库打包文件，**公开部署存在版权风险**；如需完全合规，删除该模块、移除设置里的内置项即可 |
 | LawnchairLauncher/lawnicons（Apache-2.0） | 可内置，但体积大（7000+）且为应用图标而非状态栏图形，本项目未内置 |
 | 官方 ROM 提取（.mtz / 主题 APK） | 美术资源受著作权保护，仅限个人自用，禁止随项目分发 |
 | Perfect-Icons-Completion-Project | 图标由多位作者绘制、主题方单独授权，无统一再分发许可 |
