@@ -1052,6 +1052,7 @@ html[data-form="flip"] .app-icon .ic-box { width: 52px; height: 52px; }
   background: var(--surface-2); color: var(--accent); }
 .split-item.active { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
 .split-item.active .si { background: color-mix(in srgb, var(--accent) 26%, transparent); }
+.split-item.acc { margin-bottom: 8px; }
 .split-item:active { transform: scale(.985); }
 .split-main { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .split-main > .app-body { flex: 1 1 auto; min-height: 0; }
@@ -6612,6 +6613,9 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
       if (r && r.t === 'nav' && r.page) PAGE_PARENT[r.page] = g.k;
     });
   });
+  PAGE_PARENT.account = 'account';
+  PAGE_PARENT.accountProfile = 'account';
+  PAGE_PARENT.accountLogin = 'account';
   function splitNav(active) {
     var cur = PAGE_PARENT[active] || active;
     var groups = GROUPS.filter(function (g) {
@@ -6619,6 +6623,9 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
       return !g.hidden || S.settings.devOn;
     });
     return '<aside class="split-nav"><div class="split-head">设置</div>' +
+      '<button class="split-item acc' + (cur === 'account' ? ' active' : '') +
+      '" data-a="set-root" data-v="account">' +
+      '<span class="si">' + svg('person', 16) + '</span><span>MUSE 账户</span></button>' +
       groups.map(function (g) {
         return '<button class="split-item' + (g.k === cur ? ' active' : '') +
           '" data-a="set-root" data-v="' + g.k + '">' +
@@ -9023,7 +9030,11 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
   /* 小横条手势动作（可在 设置 → 系统导航与小横条 中配置） */
   function indAction(a) {
     if (a === 'recents') NM.openRecents();
-    else if (a === 'home') NM.goHome();
+    /* 「回主屏」在桌面时按 Android 习惯改为唤出多任务，否则等于空操作（用户会以为手势坏了） */
+    else if (a === 'home') {
+      if (S.screen === 'home' && !S.shade) NM.openRecents();
+      else NM.goHome();
+    }
     /* 'none'：不做任何事 */
   }
   function local(cx, cy) {
