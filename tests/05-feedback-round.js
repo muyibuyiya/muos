@@ -396,6 +396,46 @@ setTimeout(async () => {
     if (S.editing) NM.closeHomeEditor();
   });
 
+  /* ---------- 12. 图标包：内置线条风格 / 电池电量 / 导入包 ---------- */
+  safe('图标包系统', () => {
+    const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    /* 内置 HyperOS 线条：内联 SVG，随明暗自动取色 */
+    S.settings.iconPack = 'builtin:hyperos';
+    NM.renderStatusBarIcons();
+    ck('内置图标包渲染为内联 SVG', !!d.querySelector('#sb-icons svg.sb-ico'));
+    ck('内置图标包不再使用位图', !d.querySelector('#sb-icons img.sb-ico'));
+    const svgIco = d.querySelector('#sb-icons svg.sb-ico');
+    ck('内联 SVG 用 currentColor 跟随明暗', !!(svgIco && svgIco.getAttribute('stroke') === 'currentColor'));
+    /* 电池图标带电量填充 */
+    const full = NM.sicon('battery', 'w', { level: 100 });
+    const low = NM.sicon('battery', 'w', { level: 10 });
+    ck('电池图标随电量改变填充', full !== low && full.indexOf('<rect') >= 0);
+    /* 三套风格线宽不同 */
+    const gH = NM.sicon('wifi', 'w');
+    S.settings.iconPack = 'builtin:oneui'; const gO = NM.sicon('wifi', 'w');
+    S.settings.iconPack = 'builtin:originos'; const gV = NM.sicon('wifi', 'w');
+    S.settings.iconPack = 'builtin:hyperos';
+    ck('三套内置风格线宽不同', gH !== gO && gO !== gV && gH !== gV);
+    /* 导入自定义包 */
+    const id = NM.importIconPack({ name: '测试包', icons: { wifi: { w: PNG, b: PNG } } });
+    ck('可导入自定义图标包', !!id && NM.findIconPack(id) !== null);
+    S.settings.iconPack = 'pack:' + id;
+    NM.renderStatusBarIcons();
+    ck('导入包按色调选用 bitmap', !!d.querySelector('#sb-icons img.sb-ico'));
+    ck('导入包落地到 localStorage', String(w.localStorage.getItem('muos-iconpacks-v1')).indexOf('测试包') >= 0);
+    /* 设置页展示 */
+    NM.launchApp('settings'); NM.push('settings', 'iconPacks');
+    const txt = d.getElementById('view-settings').textContent;
+    ck('设置页列出图标包选项', txt.indexOf('HyperOS 线条') >= 0 && txt.indexOf('One UI 线条') >= 0 &&
+      txt.indexOf('OriginOS 线条') >= 0 && txt.indexOf('导入包 · 测试包') >= 0);
+    ck('当前包标记「使用中」', txt.indexOf('使用中') >= 0);
+    /* 删除后回落到默认 */
+    NM.deleteIconPack(id);
+    ck('删除包后回落默认风格', S.settings.iconPack === 'auto' && NM.findIconPack(id) === null);
+    NM.renderStatusBarIcons();
+    NM.goHome();
+  });
+
   console.log('\n通过 ' + pass + '/' + (pass + fail));
   console.log('\n===== 运行时错误 (' + errs.length + ') =====');
   errs.slice(0, 12).forEach(e => console.log('  ' + e));

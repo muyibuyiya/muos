@@ -225,7 +225,7 @@
     privacyDisplay: false, privacyAuto: false, privacyMax: false, privacyPin: false,
     /* 壁纸与风格 / 主题 */
     wall: 'hyper', palette: 'blue', paletteIcons: false, lockWallSame: true,
-    dynamicLock: false, themePack: 'hyperos', iconShape: 'squircle',
+    dynamicLock: false, themePack: 'hyperos', iconShape: 'squircle', iconPack: 'auto',
     /* 主屏幕 */
     swipeSearch: true, homeLayout: 'both', homeGrid: '4x6', appGrid: '4x6',
     folderGrid: '3x3', swipeUpDrawer: true, addNewApps: true,

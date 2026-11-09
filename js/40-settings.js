@@ -181,6 +181,8 @@
       SEG('界面风格', '切换后立即改变圆角、玻璃质感与超级岛形态', 'themePack', [
         O('hyperos', '生命感美学'), O('oneui', '清爽玻璃'), O('classic', '经典 MUOS')]),
       TXT('MUOS 默认采用「生命感美学」风格：柔光玻璃、点按光效、可自由编排的桌面与超级岛。', ''),
+      H('图标'),
+      NAV('图标包', '状态栏图标绘制风格 · 导入自定义图标包', 'iconPacks'),
       H('已安装主题'),
       ACT('默认主题 · 柔光', '当前使用', 'theme-pick', 'default'),
       ACT('深色曜石', '切换到高对比深色', 'theme-pick', 'obsidian'),
@@ -482,6 +484,47 @@
             '<span class="toggle ' + (on ? 'on' : '') + '" data-a="task-toggle-one" data-v="' + i + '"></span></div>';
         }).join('') + '</div>' +
         '<div class="set-note">关闭的入口只是不显示在首页，对应的设置分类依然可以从下方列表进入。</div>';
+    },
+    /* 图标包：状态栏图标风格（内置三套线条）＋ 导入自定义包 */
+    iconPacks: function (v) {
+      var cur = S.settings.iconPack || 'auto';
+      var list = [
+        { id: 'auto', t: '跟随系统风格', s: '生命感美学 → HyperOS / 清爽玻璃 → One UI / 经典 → 系统素材' },
+        { id: 'default', t: '默认（系统素材）', s: '随主题自动取色的默认图标' },
+        { id: 'builtin:hyperos', t: 'HyperOS 线条', s: '中等线宽 · 全圆角（小米规范）' },
+        { id: 'builtin:oneui', t: 'One UI 线条', s: '偏细的几何线条（三星规范）' },
+        { id: 'builtin:originos', t: 'OriginOS 线条', s: '饱满笔画 · 圆润转角（vivo 规范）' }
+      ];
+      (NM.getIconPacks ? NM.getIconPacks() : []).forEach(function (p) {
+        list.push({ id: 'pack:' + p.id, t: '导入包 · ' + p.name,
+          s: (p.author ? p.author + ' · ' : '') + Object.keys(p.icons).length + ' 个图标',
+          pid: p.id });
+      });
+      var rows = list.map(function (o) {
+        return '<div class="set-row icon-pack-row' + (cur === o.id ? ' sel' : '') + '"' +
+          ' data-a="set-act" data-v="ip-use|' + o.id + '">' +
+          '<span class="row-main"><b>' + esc(o.t) + '</b><small>' + esc(o.s) + '</small></span>' +
+          '<span class="ip-side">' +
+          (cur === o.id ? '<span class="ip-cur">使用中</span>' : '') +
+          (o.pid ? '<span class="ip-del" data-a="set-act" data-v="ip-del|' + o.pid + '">删除</span>' : '') +
+          '</span></div>';
+      }).join('');
+      var tone = document.documentElement.getAttribute('data-sb') === 'dark' ? 'b' : 'w';
+      var prev = ['wifi', 'signal', 'bt', 'battery', 'alarm', 'dnd', 'torch', 'gps'].map(function (n) {
+        return '<span class="ip-pv">' + (NM.sicon ? NM.sicon(n, tone, { level: S.battery }) : '') + '</span>';
+      }).join('');
+      return '<div class="card ip-preview">' + prev + '</div>' +
+        '<div class="set-note">线条图标会随状态栏明暗自动变色（currentColor），无需为浅色/深色各准备一套素材。</div>' +
+        '<div class="card">' + rows + '</div>' +
+        '<div class="card">' +
+        '<div class="set-row icon-pack-row" data-a="set-act" data-v="ip-import|">' +
+        '<span class="row-main"><b>导入图标包</b><small>选择 .json（name + icons，每个图标给 w / b 两种颜色）</small></span>' +
+        '<span class="ip-side"><span class="ip-go">选择文件</span></span></div>' +
+        '<div class="set-row icon-pack-row" data-a="set-act" data-v="ip-export|">' +
+        '<span class="row-main"><b>下载格式模板</b><small>导出示例 JSON，替换其中 dataURL 即可</small></span>' +
+        '<span class="ip-side"><span class="ip-go">下载</span></span></div>' +
+        '</div>' +
+        '<div class="set-note">图标包只保存在本机浏览器（localStorage），不上传任何服务器；第三方图标素材请确认其授权后再使用。</div>';
     },
     /* MUOS 账户中心：点设置首页顶部卡片进入，个人资料与退出登录在资料子页，本机信息收纳在这里 */
     account: function (v) { return accountPage(v); },
@@ -1125,6 +1168,8 @@
       st.softGlass = false; st.tapGlow = false; st.dragGlow = false;
       st.iconShape = 'square'; st.wall = 'mono';
     }
+    /* 图标风格为「跟随系统风格」时，切主题要立刻重绘状态栏图标 */
+    if (NM.renderStatusBarIcons) NM.renderStatusBarIcons();
   }
   function trimTasks() {
     /* 后台任务不设上限：仅当用户显式设置了较小上限时才回收 */
@@ -1190,6 +1235,59 @@
       S.settings.themePack = m.pack;
       S.settings.wall = m.wall; S.settings.palette = m.palette; S.settings.theme = m.theme;
       changed(v, '主题已切换 · ' + (val === 'obsidian' ? '深色曜石' : val === 'dawn' ? '晨曦渐变' : '默认柔光'));
+    },
+    /* ---------- 图标包 ---------- */
+    'ip-use': function (v, id) {
+      S.settings.iconPack = id || 'default';
+      NM.save();
+      if (NM.renderStatusBarIcons) NM.renderStatusBarIcons();
+      changed(v, '图标风格已应用');
+    },
+    'ip-del': function (v, id) {
+      NM.deleteIconPack(id);
+      if (NM.renderStatusBarIcons) NM.renderStatusBarIcons();
+      NM.save(); NM.island('已删除图标包', 1400); NM.renderView(v);
+    },
+    'ip-import': function (v) {
+      var inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = '.json,application/json';
+      inp.addEventListener('change', function () {
+        var f = inp.files && inp.files[0]; if (!f) return;
+        var fr = new FileReader();
+        fr.onload = function () {
+          try {
+            var id = NM.importIconPack(JSON.parse(String(fr.result)));
+            S.settings.iconPack = 'pack:' + id;
+            NM.save();
+            if (NM.renderStatusBarIcons) NM.renderStatusBarIcons();
+            NM.island('图标包已导入并启用', 1600);
+            NM.renderView(v);
+          } catch (e) {
+            NM.dialog('导入失败', String((e && e.message) || e),
+              [{ t: '好', a: 'close-dialog', primary: true }]);
+          }
+        };
+        fr.readAsText(f);
+      });
+      inp.click();
+    },
+    'ip-export': function () {
+      var sample = {
+        name: '我的图标包', author: '你的名字',
+        icons: {
+          wifi: {
+            w: 'data:image/png;base64,<白色 40px 透明 PNG>',
+            b: 'data:image/png;base64,<黑色 40px 透明 PNG>'
+          }
+        }
+      };
+      var blob = new Blob([JSON.stringify(sample, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'muos-iconpack-template.json';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      NM.island('模板已下载', 1400);
     },
     'open-home-editor': function (v) { NM.goHome(); setTimeout(function () { NM.openHomeEditor(); }, 60); },
     'reset-home': function (v) {

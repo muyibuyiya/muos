@@ -2,3 +2,5 @@
 .tmp*
 *.log
 icons-sheet/
+
+node_modules/

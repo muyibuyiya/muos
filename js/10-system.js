@@ -69,7 +69,7 @@
   NM.renderStatusBarIcons = function () {
     var st = S.settings, out = '';
     var tone = document.documentElement.getAttribute('data-sb') === 'dark' ? 'b' : 'w';
-    function ico(name) { return NM.sicon ? NM.sicon(name, tone) : ''; }
+    function ico(name, opt) { return NM.sicon ? NM.sicon(name, tone, opt) : ''; }
     /* 图标避让刘海 / 灵动岛：按剩余宽度决定最多显示几个；
        优先级：Wi‑Fi > 信号 > 蓝牙 > 闹钟 > 勿扰 > 手电筒，电池永远显示 */
     var h = document.documentElement;
@@ -92,7 +92,7 @@
     out = opts.slice(0, cap).join('') +
       '<span class="battery-wrap">' +
       (S.charging ? (ico('charging') || '') : '') +
-      '<span class="battery-chip">' + (ico('battery') || '') + '<b>' + Math.round(S.battery) + '</b></span>' +
+      '<span class="battery-chip">' + (ico('battery', { level: S.battery }) || '') + '<b>' + Math.round(S.battery) + '</b></span>' +
       '</span>';
     var el = $('#sb-icons'); if (el) el.innerHTML = out;
     document.documentElement.setAttribute('data-charging', S.charging ? '1' : '0');
