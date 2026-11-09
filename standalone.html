@@ -887,45 +887,43 @@ html[data-form="pad"] .shade-inner { padding-left: 34px; padding-right: 34px; }
 /* 控制中心：iOS 式紧凑面板，全形态统一风格。
    位置按形态：手机 / 竖折叠居中，平板右对齐，横折叠只占右侧半屏。 */
 #control-shade .shade-inner {
-  width: 336px; max-width: calc(100% - 24px);
-  height: auto; max-height: calc(100% - 120px);
-  margin: 62px auto 0;
-  padding: 16px; display: grid; grid-template-columns: 1fr auto; gap: 16px 14px;
+  width: 100%; height: 100%;
+  margin: 0; padding: 58px 18px 26px;
+  display: grid; grid-template-columns: 1fr auto; gap: 18px 14px;
   grid-template-areas: "head head" "conn vs" "quick quick" "now now" "foot foot";
   align-content: start; overflow-y: auto;
-  border-radius: 30px; background: rgba(22, 25, 36, .74); backdrop-filter: var(--blur);
-  border: 1px solid rgba(255,255,255,.14); box-shadow: 0 26px 70px rgba(0,0,0,.5);
+  border-radius: 0; background: none; border: 0; box-shadow: none;
 }
-html[data-form="pad"] #control-shade .shade-inner { margin: 62px 26px 0 auto; padding-left: 16px; padding-right: 16px; }
+html[data-form="pad"] #control-shade .shade-inner { max-width: 760px; margin: 0 auto; padding: 70px 26px 30px; }
 html[data-form="fold"][data-cover="0"] #control-shade .shade-inner {
-  margin: 62px 26px 0 auto; margin-left: 50%; width: auto; max-width: calc(50% - 40px);
-  /* 折叠内屏半幅较窄：整体缩小一档，保证面板完整显示 */
-  padding: 12px; gap: 12px 10px;
+  margin: 0; padding: 62px 16px 24px; gap: 14px 12px;
 }
 html[data-form="fold"][data-cover="0"] .ctrl-conn {
-  grid-template-columns: repeat(2, 56px); grid-auto-rows: 56px; padding: 8px; gap: 10px; }
+  grid-template-columns: repeat(2, 64px); grid-auto-rows: 64px; gap: 10px; }
 html[data-form="fold"][data-cover="0"] .ctrl-conn .ctrl-tile,
-html[data-form="fold"][data-cover="0"] .ctrl-quick .ctrl-tile { width: 56px; height: 56px; }
-html[data-form="fold"][data-cover="0"] .ctrl-quick { gap: 12px; }
-html[data-form="fold"][data-cover="0"] #control-shade .ctrl-sliders { grid-template-columns: 48px 48px; gap: 10px; }
-html[data-form="fold"][data-cover="0"] #control-shade .slider-row.v { width: 48px; height: 150px; }
+html[data-form="fold"][data-cover="0"] .ctrl-quick .ctrl-tile { width: 64px; height: 64px; }
+html[data-form="fold"][data-cover="0"] .ctrl-quick { gap: 10px; }
+html[data-form="fold"][data-cover="0"] #control-shade .ctrl-sliders { grid-template-columns: 64px 64px; gap: 10px; }
+html[data-form="fold"][data-cover="0"] #control-shade .slider-row.v { width: 64px; height: 150px; }
+html[data-form="fold"][data-cover="0"] #control-shade .slider-row.v svg { width: 24px; height: 24px; }
 #control-shade .shade-head { grid-area: head; }
 #control-shade #ctrl-grid { display: contents; }
-.ctrl-conn { grid-area: conn; display: grid; grid-template-columns: repeat(2, 64px); grid-auto-rows: 64px;
-  gap: 12px; padding: 10px; border-radius: 26px; background: rgba(255,255,255,.10);
-  border: 1px solid rgba(255,255,255,.12); width: max-content; }
-.ctrl-conn .ctrl-tile, .ctrl-quick .ctrl-tile { width: 64px; height: 64px; aspect-ratio: auto;
-  border-radius: 50%; background: rgba(255,255,255,.14); border: none; gap: 3px; }
-.ctrl-conn .ctrl-tile svg, .ctrl-quick .ctrl-tile svg { width: 18px; height: 18px; }
-.ctrl-conn .ctrl-tile small, .ctrl-quick .ctrl-tile small { font-size: 8px; }
-.ctrl-quick { grid-area: quick; display: flex; justify-content: center; gap: 16px; }
-.ctrl-quick .ctrl-tile.on { background: #fff; color: #10131c; }
-.ctrl-quick .ctrl-tile.on small { color: rgba(16,19,28,.7); }
-/* iOS 式竖向滑条：白色填充随值增减，百分比在上、图标在下 */
-#control-shade .ctrl-sliders { grid-area: vs; display: grid; grid-template-columns: 56px 56px; gap: 12px; }
+.ctrl-conn { grid-area: conn; display: grid; grid-template-columns: repeat(2, 76px); grid-auto-rows: 76px;
+  gap: 12px; padding: 0; border-radius: 0; background: none; border: 0; width: max-content; }
+.ctrl-conn .ctrl-tile, .ctrl-quick .ctrl-tile { width: 76px; height: 76px; aspect-ratio: auto;
+  border-radius: 24px; background: rgba(255,255,255,.14); border: none; gap: 6px; }
+.ctrl-conn .ctrl-tile svg, .ctrl-quick .ctrl-tile svg { width: 26px; height: 26px; }
+.ctrl-conn .ctrl-tile small, .ctrl-quick .ctrl-tile small { font-size: 9.5px; }
+.ctrl-quick { grid-area: quick; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.ctrl-quick .ctrl-tile { width: auto; }
+.ctrl-quick .ctrl-tile.on { background: var(--accent); color: #fff; }
+.ctrl-quick .ctrl-tile.on small { color: rgba(255,255,255,.85); }
+/* HyperOS 式竖向滑条：80×176、圆角 24、图标 31（真机 brightness_panel_slider_* 等比） */
+#control-shade .ctrl-sliders { grid-area: vs; display: grid; grid-template-columns: 80px 80px; gap: 12px; }
 #control-shade .slider-row.v {
-  width: 56px; height: 168px; flex-direction: column; justify-content: flex-end; align-items: center;
-  padding: 12px 0; border-radius: 20px; gap: 8px; position: relative; overflow: hidden;
+  width: 80px; height: 176px; border-radius: 24px;
+  flex-direction: column; justify-content: flex-end; align-items: center;
+  padding: 0; gap: 8px; position: relative; overflow: hidden;
   background: rgba(255,255,255,.16); border: none; touch-action: none; cursor: pointer; }
 /* 填充层：随数值平滑增高（比直接改渐变更顺滑） */
 #control-shade .slider-row.v::after {
@@ -934,8 +932,8 @@ html[data-form="fold"][data-cover="0"] #control-shade .slider-row.v { width: 48p
   transition: height .16s cubic-bezier(.22, .86, .24, 1); }
 #control-shade .slider-row.v > * { position: relative; z-index: 1; }
 #control-shade .slider-row.v input[type=range] { background: transparent; }
-#control-shade .slider-row.v svg { order: 3; width: 17px; height: 17px; margin: 0; }
-#control-shade .slider-row.v b { order: 1; width: auto; font-size: 10px; }
+#control-shade .slider-row.v svg { order: 3; width: 31px; height: 31px; margin: 0; bottom: 12px; }
+#control-shade .slider-row.v b { order: 1; width: auto; font-size: 12px; top: 12px; }
 #control-shade .slider-row.v input[type=range] {
   order: 2; writing-mode: vertical-lr; direction: rtl; -webkit-appearance: none; appearance: none;
   width: 100%; flex: 1; height: auto; border-radius: 10px;
