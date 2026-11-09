@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HyperOS 4 控制中心 · 用真机资源复刻</title>
+<style>
+  /* ------------------------------------------------------------------
+     尺寸与颜色来自解包后的 MiuiSystemUI.apk / MIUISystemUIPlugin.apk
+     的 res/values/dimens.xml、colors.xml，1dip = 1px 直接映射
+     ------------------------------------------------------------------ */
+  :root{
+    /* 磁贴：qs_control_center_tile_width / _height */
+    --tile-w: 64.73px;
+    --tile-h: 71.64px;
+    /* 圆角：control_center_universal_corner_radius */
+    --tile-r: 24px;
+    /* qs_tile_icon_size */
+    --tile-icon: 21.33px;
+    /* qs_tile_app_label_text_size (sp) */
+    --tile-label: 9.33px;
+    /* 滑条：brightness_panel_slider_width_small / _height_small / _radius */
+    --slider-w: 80.15px;
+    --slider-h: 176px;
+    --slider-r: 24px;
+    /* 滑条图标：…_slider_icon_size_small / _icon_margin_bottom_small */
+    --slider-icon: 31.4px;
+    --slider-icon-b: 19.06px;
+    /* 滑条顶部文字：…_toggle_slider_top_text_size / _top_margin */
+    --slider-text: 12px;
+    --slider-text-top: 16px;
+    /* 头部：qs_control_center_header_paddingTop */
+    --hdr-top: 52px;
+    /* 页码点：qs_page_indicator_dot_size / _dot_space */
+    --dot: 5.82px; --dot-gap: 8.73px;
+    /* 底部：qs_footer_height / qs_footer_icon_size */
+    --foot-h: 33.34px; --foot-icon: 20px;
+    /* 颜色：colors.xml（深色配置） */
+    --tile-bg: rgba(255,255,255,.14);        /* qs_tile_icon_bg_disabled_color #14ffffff */
+    --tile-bg-on: #0077cc;                   /* qs_tile_icon_bg_enabled_color #ff0077cc */
+    --tile-label-c: rgba(255,255,255,.70);   /* qs_tile_label_text_color #b2ffffff */
+    --tile-icon-off: rgba(255,255,255,.80);  /* qs_tile_icon_disabled_color #ccffffff */
+    --tile-icon-on: #ffffff;
+    --track: rgba(255,255,255,.14);
+    --fill: #ffffff;
+  }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{ height:100%; }
+  body{
+    margin:0; background:#0a0c12; color:#e9ecf5;
+    font-family:"MiSans","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    display:flex; min-height:100vh;
+  }
+  /* ---------------- 说明栏 ---------------- */
+  .spec{
+    width:330px; flex:none; padding:26px 22px 40px; overflow-y:auto;
+    border-right:1px solid rgba(255,255,255,.08); background:#0d1017;
+  }
+  .spec h1{ font-size:15px; margin:0 0 4px; letter-spacing:.2px; }
+  .spec .sub{ font-size:11.5px; line-height:1.7; color:rgba(233,236,245,.55); margin-bottom:18px; }
+  .spec h2{ font-size:11px; text-transform:uppercase; letter-spacing:1.2px;
+    color:rgba(233,236,245,.42); margin:22px 0 8px; font-weight:600; }
+  .tok{ display:flex; justify-content:space-between; gap:10px; font-size:11px;
+    padding:5px 0; border-bottom:1px dashed rgba(255,255,255,.07); }
+  .tok code{ color:#9fb8ff; font-family:ui-monospace,monospace; word-break:break-all; }
+  .tok b{ color:#f0f3fb; font-weight:600; white-space:nowrap; }
+  .switches{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .sw{ display:flex; align-items:center; justify-content:space-between; gap:10px;
+    font-size:12px; padding:9px 12px; border-radius:10px; background:#151925; cursor:pointer; }
+  .sw input{ accent-color:#3b6fd4; }
+  .note{ margin-top:20px; font-size:11px; line-height:1.8; color:rgba(233,236,245,.42); }
+  .note em{ color:#9fb8ff; font-style:normal; }
+
+  /* ---------------- 设备 ---------------- */
+  .stage{ flex:1; display:grid; place-items:center; padding:34px; }
+  .phone{
+    position:relative; width:393px; height:852px; border-radius:46px; overflow:hidden;
+    background:#05060b; box-shadow:0 40px 100px rgba(0,0,0,.6), 0 0 0 9px #1b1e26, 0 0 0 11px #2c303a;
+  }
+  .wall{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(120% 80% at 78% 12%, #3b4a86 0%, transparent 55%),
+      radial-gradient(100% 70% at 18% 88%, #1b4a4a 0%, transparent 60%),
+      radial-gradient(80% 60% at 50% 50%, #2a2140 0%, transparent 70%),
+      linear-gradient(160deg,#0d1226,#151a35 46%,#0b1020);
+  }
+  .wall::after{
+    content:''; position:absolute; inset:-10%;
+    background:radial-gradient(circle at 70% 30%, rgba(120,150,255,.16), transparent 60%);
+    filter:blur(20px);
+  }
+  .statusbar{
+    position:absolute; z-index:5; left:0; right:0; top:0; height:34px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 18px; font-size:13px; font-weight:500; color:#fff;
+  }
+  .cam{ width:12px; height:12px; border-radius:50%; background:#0a0b10; box-shadow:0 0 0 2px rgba(0,0,0,.5); }
+  .sb-right{ display:flex; align-items:center; gap:7px; font-size:12px; }
+  .sb-right svg{ width:15px; height:15px; }
+  .batt{ display:flex; align-items:center; gap:3px; }
+  .batt .shell{ width:22px; height:11px; border:1.4px solid rgba(255,255,255,.9); border-radius:3px; position:relative; }
+  .batt .shell i{ position:absolute; left:1.6px; top:1.6px; bottom:1.6px; width:86%; background:#fff; border-radius:1px; }
+  .batt .shell::after{ content:''; position:absolute; right:-3px; top:3px; width:2px; height:5px;
+    background:rgba(255,255,255,.9); border-radius:0 2px 2px 0; }
+  .batt span{ font-size:10px; opacity:.9; }
+
+  /* ---------------- 控制中心 ---------------- */
+  .cc{
+    position:absolute; inset:0; z-index:3; display:flex; flex-direction:column;
+    padding:var(--hdr-top) 12px 0;
+    background:rgba(10,12,20,.30);
+    backdrop-filter:blur(26px) saturate(120%); -webkit-backdrop-filter:blur(26px) saturate(120%);
+  }
+  .hdr{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+  .clock b{ display:block; font-size:40px; font-weight:600; letter-spacing:-1px; line-height:1.04; }
+  .clock span{ display:block; margin-top:2px; font-size:14px; color:rgba(255,255,255,.62); }
+  .hdr-right{ display:flex; align-items:center; gap:9px; padding-top:6px; color:rgba(255,255,255,.9); }
+  .hdr-right svg{ width:17px; height:17px; }
+  .avatar{ width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.18);
+    display:grid; place-items:center; color:#fff; }
+  .avatar svg{ width:16px; height:16px; }
+
+  .grid{ margin-top:21.8px; flex:none; overflow:hidden; } /* qs_control_center_tile_margin_top */
+  .pages{ display:flex; transition:transform .34s cubic-bezier(.22,.86,.24,1); }
+  .page{ flex:0 0 100%; display:grid; grid-template-columns:repeat(4,var(--tile-w));
+    gap:12px 18px; justify-content:center; align-content:start; }
+  .tile{
+    position:relative; width:var(--tile-w); height:var(--tile-h); border-radius:var(--tile-r);
+    border:1px solid rgba(255,255,255,.06); background:var(--tile-bg);
+    color:var(--tile-icon-off); display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:5px; cursor:pointer; font:inherit;
+    transition:background .22s ease, color .22s ease, transform .14s ease;
+  }
+  .tile:active{ transform:scale(.95); }
+  .tile svg{ width:var(--tile-icon); height:var(--tile-icon); }
+  .tile small{ font-size:var(--tile-label); color:var(--tile-label-c); font-weight:400; }
+  .tile.on{ background:var(--tile-bg-on); border-color:transparent; color:var(--tile-icon-on); }
+  .tile.on small{ color:rgba(255,255,255,.92); }
+  .cc.edit .tile{ border:1px dashed rgba(255,255,255,.45); }
+  .cc.edit .tile::after{ content:'−'; position:absolute; top:-6px; left:-6px; width:18px; height:18px;
+    border-radius:50%; background:#ff5f57; color:#fff; font-size:13px; line-height:17px; text-align:center; }
+
+  /* 滑条：右下两列 */
+  .sliders{ margin-top:28px; display:flex; justify-content:flex-end; align-items:flex-end;
+    gap:14px; padding-bottom:2px; }
+  .sld{
+    position:relative; width:var(--slider-w); height:var(--slider-h); border-radius:var(--slider-r);
+    background:var(--track); overflow:hidden; touch-action:none; cursor:pointer;
+    transition:transform .18s ease;
+  }
+  .sld.drag{ transform:scale(1.02); }
+  .sld .fill{ position:absolute; left:0; right:0; bottom:0; background:var(--fill);
+    height:var(--p,50%); transition:height .12s cubic-bezier(.22,.86,.24,1); }
+  .sld .val{ position:absolute; left:0; right:0; top:var(--slider-text-top); text-align:center;
+    font-size:var(--slider-text); font-weight:600; font-variant-numeric:tabular-nums;
+    color:#fff; mix-blend-mode:difference; opacity:0; transition:opacity .16s ease; }
+  .sld.drag .val{ opacity:1; }
+  .sld svg{ position:absolute; left:50%; bottom:var(--slider-icon-b); transform:translateX(-50%);
+    width:var(--slider-icon); height:var(--slider-icon); color:#fff; mix-blend-mode:difference; }
+
+  /* 媒体卡：qs_media_padding / qs_media_album_radius */
+  .media{
+    margin-top:16px; padding:12px; border-radius:20px; background:rgba(255,255,255,.10);
+    display:flex; align-items:center; gap:12px; border:1px solid rgba(255,255,255,.06);
+  }
+  .media.hide{ display:none; }
+  .cover{ width:44px; height:44px; border-radius:14px; flex:none;
+    background:linear-gradient(140deg,#5b6ff0,#8f5bd8); }
+  .mtxt{ flex:1; min-width:0; }
+  .mtxt b{ display:block; font-size:12.5px; font-weight:500; }
+  .mtxt span{ display:block; font-size:10.5px; color:rgba(255,255,255,.55); margin-top:2px; }
+  .mbtns{ display:flex; align-items:center; gap:6px; }
+  .mbtns button{ width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
+    background:rgba(255,255,255,.14); color:#fff; border:0; cursor:pointer; }
+  .mbtns button svg{ width:15px; height:15px; }
+  .mbtns .play{ width:34px; height:34px; background:#fff; color:#111; }
+
+  .dots{ display:flex; justify-content:center; align-items:center; gap:var(--dot-gap);
+    height:18px; margin-top:auto; margin-bottom:10px; }
+  .dots i{ width:var(--dot); height:var(--dot); border-radius:50%; background:rgba(255,255,255,.32); cursor:pointer; }
+  .dots i.on{ background:#fff; width:calc(var(--dot) * 2.6); border-radius:3px; }
+
+  .foot{ height:var(--foot-h); display:flex; align-items:center; justify-content:flex-end;
+    gap:26px; padding:0 10px 16px; color:rgba(255,255,255,.82); }
+  .foot button{ width:24px; height:24px; display:grid; place-items:center; background:none; border:0;
+    color:inherit; cursor:pointer; }
+  .foot svg{ width:var(--foot-icon); height:var(--foot-icon); }
+  .foot .done{ display:none; font-size:11px; padding:4px 10px; border-radius:999px;
+    background:#fff; color:#111; font-weight:600; width:auto; }
+  .cc.edit .foot .done{ display:block; }
+  .homebar{ position:absolute; z-index:4; left:50%; bottom:8px; width:132px; height:4px;
+    transform:translateX(-50%); border-radius:2px; background:rgba(255,255,255,.55); }
+
+  /* 浅色面板 */
+  .cc.light{ background:rgba(248,250,255,.72); color:#14172a; }
+  .cc.light .clock span{ color:rgba(20,23,42,.6); }
+  .cc.light .hdr-right, .cc.light .avatar{ color:#14172a; }
+  .cc.light .avatar{ background:rgba(20,23,42,.10); }
+  .cc.light .tile{ background:#f1f3fa; color:#14172a; border-color:rgba(20,23,42,.05); }
+  .cc.light .tile small{ color:rgba(20,23,42,.62); }
+  .cc.light .tile.on{ background:#0099ff; color:#fff; }
+  .cc.light .tile.on small{ color:rgba(255,255,255,.9); }
+  .cc.light .sld{ background:rgba(20,23,42,.12); }
+  .cc.light .sld .fill{ background:#fff; box-shadow:0 1px 6px rgba(20,23,42,.22); }
+  .cc.light .media{ background:#fff; border-color:rgba(20,23,42,.06); }
+  .cc.light .mtxt span{ color:rgba(20,23,42,.55); }
+  .cc.light .mbtns button{ background:rgba(20,23,42,.08); color:#14172a; }
+  .cc.light .mbtns .play{ background:#14172a; color:#fff; }
+  .cc.light .dots i{ background:rgba(20,23,42,.25); }
+  .cc.light .dots i.on{ background:#0099ff; }
+  .cc.light .foot{ color:rgba(20,23,42,.7); }
+</style>
+</head>
+<body>
+<aside class="spec">
+  <h1>HyperOS 4 控制中心 · 复刻</h1>
+  <div class="sub">尺寸、颜色、文案取自 <code>MiuiSystemUI.apk</code> 与 <code>MIUISystemUIPlugin.apk</code> 的 <code>res/values</code>（1dip = 1px 直接映射）。图标按真机线稿重绘。</div>
+
+  <h2>磁贴</h2>
+  <div class="tok"><code>qs_control_center_tile_width</code><b>64.73</b></div>
+  <div class="tok"><code>qs_control_center_tile_height</code><b>71.64</b></div>
+  <div class="tok"><code>control_center_universal_corner_radius</code><b>24</b></div>
+  <div class="tok"><code>qs_tile_icon_size</code><b>21.33</b></div>
+  <div class="tok"><code>qs_tile_app_label_text_size</code><b>9.33sp</b></div>
+  <div class="tok"><code>qs_control_center_tile_margin_top</code><b>21.82</b></div>
+  <div class="tok"><code>qs_tile_icon_bg_enabled_color</code><b>#0077CC</b></div>
+  <div class="tok"><code>qs_tile_icon_bg_disabled_color</code><b>#14FFFFFF</b></div>
+  <div class="tok"><code>qs_tile_label_text_color</code><b>#B2FFFFFF</b></div>
+
+  <h2>亮度 / 音量滑条</h2>
+  <div class="tok"><code>brightness_panel_slider_width_small</code><b>80.15</b></div>
+  <div class="tok"><code>brightness_panel_slider_height_small</code><b>176</b></div>
+  <div class="tok"><code>brightness_panel_slider_radius</code><b>24</b></div>
+  <div class="tok"><code>…slider_icon_size_small</code><b>31.39</b></div>
+  <div class="tok"><code>…slider_icon_margin_bottom_small</code><b>19.06</b></div>
+  <div class="tok"><code>…toggle_slider_top_text_size</code><b>12</b></div>
+  <div class="tok"><code>…toggle_slider_top_text_top_margin</code><b>16</b></div>
+
+  <h2>头部 / 底部</h2>
+  <div class="tok"><code>qs_control_center_header_paddingTop</code><b>52</b></div>
+  <div class="tok"><code>shade_header_control_center_date_text_size</code><b>14</b></div>
+  <div class="tok"><code>qs_page_indicator_dot_size</code><b>5.82</b></div>
+  <div class="tok"><code>qs_page_indicator_dot_space</code><b>8.73</b></div>
+  <div class="tok"><code>qs_footer_height</code><b>33.34</b></div>
+  <div class="tok"><code>qs_footer_icon_size</code><b>20</b></div>
+
+  <h2>演示开关</h2>
+  <div class="switches">
+    <label class="sw">浅色面板<input type="checkbox" id="tg-light"></label>
+    <label class="sw">媒体卡（HyperOS 有，MUOS 已按你要求去掉）<input type="checkbox" id="tg-media" checked></label>
+    <label class="sw">磁贴编辑态<input type="checkbox" id="tg-edit"></label>
+  </div>
+  <p class="note">真机磁贴列宽由 <em>MiuiTileLayout</em> 运行期按屏宽分配，dimens 只提供单块磁贴与边距，这里按 4 列均分呈现；滑条数值、开关状态为演示数据。</p>
+</aside>
+
+<main class="stage">
+  <div class="phone">
+    <div class="wall"></div>
+    <div class="statusbar">
+      <span id="sb-time">13:48</span>
+      <i class="cam"></i>
+      <span class="sb-right">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 17c4-6 12-6 16 0"/><path d="M7 20c3-4 7-4 10 0"/><circle cx="12" cy="9" r="1.6" fill="currentColor" stroke="none"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20v-5M10 20v-9M15 20V8M20 20V5"/></svg>
+        <span class="batt"><span class="shell"><i></i></span><span>93</span></span>
+      </span>
+    </div>
+
+    <section class="cc" id="cc">
+      <header class="hdr">
+        <div class="clock"><b id="cc-time">13:48</b><span id="cc-date">11月9日 周一</span></div>
+        <div class="hdr-right">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 17c4-6 12-6 16 0"/><path d="M7 20c3-4 7-4 10 0"/><circle cx="12" cy="9" r="1.6" fill="currentColor" stroke="none"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20v-5M10 20v-9M15 20V8M20 20V5"/></svg>
+          <span class="avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="9" r="3.2"/><path d="M5 20c1.4-4 4-5.5 7-5.5s5.6 1.5 7 5.5"/></svg>
+          </span>
+        </div>
+      </header>
+
+      <div class="grid"><div class="pages" id="pages"></div></div>
+
+      <div class="sliders">
+        <div class="sld" data-k="brightness" style="--p:15%">
+          <div class="fill"></div>
+          <span class="val">15%</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="3.4"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></svg>
+        </div>
+        <div class="sld" data-k="volume" style="--p:11%">
+          <div class="fill"></div>
+          <span class="val">11%</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.6L12 6v12l-4.4-3.5H4z"/><path d="M15.6 9.2a4 4 0 0 1 0 5.6"/></svg>
+        </div>
+      </div>
+
+      <div class="media" id="media">
+        <div class="cover"></div>
+        <div class="mtxt"><b>星轨序曲</b><span>MUOS Studio · 已暂停</span></div>
+        <div class="mbtns">
+          <button aria-label="上一首"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h2v14H7zM20 5v14l-9-7z"/></svg></button>
+          <button class="play" aria-label="播放"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l11 7-11 7z"/></svg></button>
+          <button aria-label="下一首"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 5h-2v14h2zM4 5v14l9-7z"/></svg></button>
+        </div>
+      </div>
+
+      <div class="dots" id="dots"><i class="on" data-i="0"></i><i data-i="1"></i></div>
+
+      <footer class="foot">
+        <button class="done" id="done" type="button">完成</button>
+        <button aria-label="编辑" id="btn-edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z" opacity=".9"/></svg></button>
+        <button aria-label="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.4 5.4L7.2 7.2M16.8 16.8l1.8 1.8M18.6 5.4l-1.8 1.8M7.2 16.8l-1.8 1.8"/></svg></button>
+        <button aria-label="电源"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.4 6.4a8 8 0 1 0 11.2 0"/></svg></button>
+      </footer>
+    </section>
+    <i class="homebar"></i>
+  </div>
+</main>
+
+<script>
+(function(){
+  var ICONS = {
+    airplane:'<path d="M12 2.4l1.5 5.9 6.1 3.4v1.9l-6.1-1.8v4.1l2.2 1.7v1.5L12 18.4l-3.7 1.7v-1.5l2.2-1.7v-4.1L4.4 15.6v-1.9l6.1-3.4z" fill="currentColor"/>',
+    cellular:'<path d="M4 18.5h2.6V15H4zM9 18.5h2.6V11H9zM14 18.5h2.6V7.5H14zM19 18.5h2.6V4H19z" fill="currentColor"/>',
+    wifi:'<path d="M12 17.6a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM12 12.4c1.9 0 3.7.7 5 2l-1.9 1.9a4.4 4.4 0 0 0-6.2 0L7 14.4a7.2 7.2 0 0 1 5-2zM12 6.4c3.5 0 6.7 1.4 9 3.7l-1.9 1.9A9.9 9.9 0 0 0 12 9.3c-2.7 0-5.2 1-7.1 2.7L3 10.1a12.7 12.7 0 0 1 9-3.7z" fill="currentColor"/>',
+    bluetooth:'<path d="M11.2 2.4l6.2 4.9-4.5 3.6 4.5 3.6-6.2 4.9V13l-3.4 2.7-1.4-1.8 4-3.2-4-3.2 1.4-1.8L11.2 8.4zM13.4 6.2v3.1l1.9-1.5zM13.4 13.9v3.1l1.9-1.5z" fill="currentColor"/>',
+    moon:'<path d="M20.2 15.6A8.6 8.6 0 0 1 8.4 3.8 8.8 8.8 0 1 0 20.2 15.6z" fill="currentColor"/>',
+    torch:'<path d="M9 3h6l1.4 3.1H7.6zM8 7.4h8l-.7 3.1H8.7zM10 11.6h4V21h-4z" fill="currentColor"/>',
+    dark:'<path d="M12 6.4a5.6 5.6 0 1 1 0 11.2 5.6 5.6 0 0 1 0-11.2zM12 2.2l.9 2.6 2.6-.9-1.5 2.3 2.3 1.5-2.6.9.9 2.6-2.6-.9-.9 2.6-.9-2.6-2.6.9.9-2.6-2.6-.9 2.3-1.5L4.7 3.9l2.6.9z" opacity=".95" fill="currentColor"/>',
+    bolt:'<path d="M13.4 2L5 13.4h5.2L9.8 22 19 10.2h-5.4z" fill="currentColor"/>',
+    hotspot:'<path d="M12 10.4a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2zM8.9 8.5a4.6 4.6 0 0 0 0 6.4l-1.6 1.6a6.8 6.8 0 0 1 0-9.6zM15.1 8.5l1.6-1.6a6.8 6.8 0 0 1 0 9.6l-1.6-1.6a4.6 4.6 0 0 0 0-6.4zM6.2 6a8.6 8.6 0 0 0 0 12l-1.6 1.6a10.8 10.8 0 0 1 0-15.2zM17.8 6l1.6-1.6a10.8 10.8 0 0 1 0 15.2L17.8 18a8.6 8.6 0 0 0 0-12z" fill="currentColor"/>',
+    eye:'<path d="M12 5.4c4.6 0 8.4 3.1 9.8 6.6-1.4 3.5-5.2 6.6-9.8 6.6S3.6 15.5 2.2 12C3.6 8.5 7.4 5.4 12 5.4zm0 2.4a4.2 4.2 0 1 0 0 8.4 4.2 4.2 0 0 0 0-8.4zm0 2.2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z" fill="currentColor"/>',
+    nfc:'<path d="M5 4h14v16H5zm2 2v12h10V6zm5 1.6c1.9 1.6 1.9 7.2 0 8.8l-1-1.2c1.2-1.1 1.2-5.3 0-6.4zM9.2 9c1.2 1 1.2 5 0 6l-.9-1.2c.6-.6.6-3 0-3.6z" fill="currentColor"/>',
+    saver:'<path d="M4 19h16v-2H4zm2-4h3v4H6zm5-5h3v9h-3zm5-6h3v15h-3z" fill="currentColor"/>'
+  };
+  var TILES = [
+    ['airplane','飞行模式'],['cellular','移动数据'],['wifi','无线局域网'],['bluetooth','蓝牙'],
+    ['dnd','勿扰模式'],['torch','手电筒'],['dark','深色模式'],['lowpower','省电模式'],
+    ['hotspot','个人热点'],['eyecare','护眼模式'],['nfc','NFC'],['saver','流量节省']
+  ];
+  var ICON_KEY = { dnd:'moon', lowpower:'bolt', eyecare:'eye' };
+  var ON = { wifi:true, cellular:true, bluetooth:true, dark:true };
+  var page = 0, pages = 2, per = 8;
+
+  function tileHTML(i){
+    var t = TILES[i], key = t[0], name = t[1];
+    var icon = ICONS[ICON_KEY[key] || key] || ICONS.wifi;
+    return '<button class="tile' + (ON[key] ? ' on' : '') + '" data-k="' + key + '">' +
+      '<svg viewBox="0 0 24 24">' + icon + '</svg><small>' + name + '</small></button>';
+  }
+  function render(){
+    var host = document.getElementById('pages');
+    host.innerHTML = '';
+    for (var p = 0; p < pages; p++){
+      var el = document.createElement('div');
+      el.className = 'page';
+      var html = '';
+      var start = p * per, end = Math.min(TILES.length, start + per);
+      for (var i = start; i < end; i++) html += tileHTML(i);
+      el.innerHTML = html;
+      host.appendChild(el);
+    }
+    host.style.transform = 'translateX(' + (-page * 100) + '%)';
+    var dots = document.getElementById('dots').children;
+    for (var d = 0; d < dots.length; d++) dots[d].className = (d === page ? 'on' : '');
+    host.querySelectorAll('.tile').forEach(function(b){
+      b.addEventListener('click', function(){
+        var k = b.getAttribute('data-k');
+        ON[k] = !ON[k]; b.classList.toggle('on', !!ON[k]);
+      });
+    });
+  }
+
+  function bindSlider(el){
+    var dragging = false;
+    function set(clientY){
+      var r = el.getBoundingClientRect();
+      if (!r.height) return;
+      var pct = Math.max(4, Math.min(100, Math.round((1 - (clientY - r.top) / r.height) * 100)));
+      el.style.setProperty('--p', pct + '%');
+      el.querySelector('.val').textContent = pct + '%';
+    }
+    el.addEventListener('pointerdown', function(e){
+      dragging = true; el.classList.add('drag'); set(e.clientY);
+      try { el.setPointerCapture(e.pointerId); } catch(err){}
+      e.preventDefault();
+    });
+    el.addEventListener('pointermove', function(e){
+      if (!dragging) return; set(e.clientY); e.preventDefault();
+    });
+    ['pointerup','pointercancel'].forEach(function(t){
+      el.addEventListener(t, function(){ dragging = false; el.classList.remove('drag'); });
+    });
+  }
+  document.querySelectorAll('.sld').forEach(bindSlider);
+
+  document.getElementById('dots').addEventListener('click', function(e){
+    var i = e.target.getAttribute('data-i');
+    if (i !== null){ page = +i; render(); }
+  });
+  document.getElementById('btn-edit').addEventListener('click', function(){
+    var on = document.getElementById('cc').classList.toggle('edit');
+    document.getElementById('tg-edit').checked = on;
+  });
+  document.getElementById('done').addEventListener('click', function(){
+    document.getElementById('cc').classList.remove('edit');
+    document.getElementById('tg-edit').checked = false;
+  });
+  document.getElementById('tg-edit').addEventListener('change', function(e){
+    document.getElementById('cc').classList.toggle('edit', e.target.checked);
+  });
+  document.getElementById('tg-light').addEventListener('change', function(e){
+    document.getElementById('cc').classList.toggle('light', e.target.checked);
+  });
+  document.getElementById('tg-media').addEventListener('change', function(e){
+    document.getElementById('media').classList.toggle('hide', !e.target.checked);
+  });
+
+  function tick(){
+    var d = new Date();
+    var hh = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+    var mm = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+    document.getElementById('sb-time').textContent = hh;
+    document.getElementById('cc-time').textContent = hh;
+    document.getElementById('cc-date').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + mm;
+  }
+  tick(); setInterval(tick, 20000);
+  render();
+})();
+</script>
+</body>
+</html>
