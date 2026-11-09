@@ -534,14 +534,6 @@
     }
     var av = $('.cc-avatar'); if (av) av.innerHTML = NM.svg('person', 18);
     NM.tickClock();
-    NM.renderNowPlaying();
-  };
-  NM.renderNowPlaying = function () {
-    var m = S.music, songs = NM.SONGS || [], cur = songs[m.idx];
-    var el = $('#ctrl-now'); if (!el) return;
-    el.innerHTML = '<div class="cn-title">' + (cur ? esc(cur.title) : '未在播放') + '</div>' +
-      '<div class="cn-sub">' + (cur ? esc(cur.artist) + ' · ' + (m.playing ? '正在播放' : '已暂停') : '打开音乐应用开始播放') + '</div>' +
-      '<div class="cn-bar"><i style="width:' + (cur && cur.dur ? (m.pos / cur.dur * 100) : 0) + '%"></i></div>';
   };
   NM.toggleTile = function (k) {
     var st = S.settings;

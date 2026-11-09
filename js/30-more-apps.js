@@ -406,7 +406,6 @@
     var bar = W.document.getElementById('music-bar'), cur = W.document.getElementById('music-cur');
     if (bar) bar.style.width = (m.pos / s.dur * 100) + '%';
     if (cur) cur.textContent = fmtSec(m.pos);
-    NM.renderNowPlaying();
   });
 
   /* ============================================================

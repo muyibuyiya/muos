@@ -239,6 +239,9 @@ setTimeout(async () => {
     ck('快捷开关圆钮 4 个', d.querySelectorAll('#ctrl-grid .ctrl-quick .ctrl-tile').length === 4);
     ck('竖向滑条带填充变量', d.getElementById('brightness-row').className.indexOf('v') >= 0 &&
       d.getElementById('brightness-row').style.getPropertyValue('--pct') !== '');
+    ck('控制中心无常驻媒体条', !d.getElementById('ctrl-now'));
+    ck('滑条只有一层填充（无渐变叠加）', html.indexOf('linear-gradient(to top,') < 0);
+    ck('滑条图标随填充反色', html.indexOf('mix-blend-mode: difference') >= 0);
     ck('下拉时状态栏磨砂标记', d.documentElement.getAttribute('data-shade-open') === 'control');
     NM.hideShade();
     ck('收起后磨砂标记移除', !d.documentElement.hasAttribute('data-shade-open'));
