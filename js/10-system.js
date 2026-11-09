@@ -525,6 +525,15 @@
     $('#volume-row').innerHTML = NM.svg(st.volume ? 'volume' : 'volumeOff', 19) +
       '<input type="range" min="0" max="100" value="' + st.volume + '" data-f="volume">' +
       '<b>' + st.volume + '%</b>';
+    /* 头部：状态图标 + 头像（HyperOS 构成：大时钟/日期 + 右侧图标与账户入口） */
+    var sic = $('#cc-sicons');
+    if (sic) {
+      var tone = st.theme === 'light' ? 'b' : 'w';
+      sic.innerHTML = NM.sicon('wifi', tone) + NM.sicon('signal', tone) +
+        NM.sicon('battery', tone, { level: S.battery });
+    }
+    var av = $('.cc-avatar'); if (av) av.innerHTML = NM.svg('person', 18);
+    NM.tickClock();
     NM.renderNowPlaying();
   };
   NM.renderNowPlaying = function () {

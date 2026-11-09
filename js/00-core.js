@@ -494,6 +494,8 @@
     var ld = $('#lock-date'); if (ld) ld.textContent = dateCN(d);
     var nd = $('#notif-date'); if (nd) nd.textContent = fullDate(d);
     var cd = $('#ctrl-date'); if (cd) cd.textContent = fullDate(d);
+    var ct = $('#cc-time'); if (ct) ct.textContent = t;
+    var cd2 = $('#cc-date'); if (cd2) cd2.textContent = fullDate(d);
     var wc = $('#widget-clock'); if (wc) wc.textContent = t;
     var wd = $('#widget-date'); if (wd) wd.textContent = dateCN(d);
     /* 小组件按页渲染后可能有多张时钟卡，统一用 class 批量刷新 */

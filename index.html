@@ -115,18 +115,20 @@
       <!-- 控制中心 -->
       <section id="control-shade" class="shade">
         <div class="shade-inner">
-          <div class="shade-head"><span id="ctrl-date"></span><span>控制中心</span></div>
+          <div class="cc-header">
+            <div class="cc-clock"><b id="cc-time">--:--</b><span id="cc-date"></span></div>
+            <div class="cc-header-right">
+              <span class="cc-sicons" id="cc-sicons"></span>
+              <button class="cc-avatar" data-a="open-settings" aria-label="设置"></button>
+            </div>
+          </div>
           <div class="ctrl-grid" id="ctrl-grid"></div>
           <div class="ctrl-sliders">
             <div class="slider-row" id="brightness-row"></div>
             <div class="slider-row" id="volume-row"></div>
           </div>
           <div class="ctrl-now" id="ctrl-now"></div>
-          <div class="ctrl-foot">
-            <button data-a="open-settings">系统设置</button>
-            <button data-a="open-recents">多任务</button>
-            <button data-a="power-menu">电源</button>
-          </div>
+          <div class="ctrl-foot"><span class="cc-dots"><i class="on"></i><i></i></span></div>
         </div>
       </section>
 

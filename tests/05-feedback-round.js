@@ -233,6 +233,9 @@ setTimeout(async () => {
     NM.DEV.form = 'pad'; NM.DEV.orient = 'portrait'; NM.DEV.res = 'pad-qhd'; NM.applyDevice();
     NM.showShade('control');
     ck('连接类开关成组 ctrl-conn', !!d.querySelector('#ctrl-grid .ctrl-conn'));
+    ck('四列磁贴共 8 个', d.querySelectorAll('#ctrl-grid .ctrl-tile').length === 8);
+    ck('头部为大时钟+日期', !!d.getElementById('cc-time') && d.getElementById('cc-time').textContent !== '--:--');
+    ck('底部为分页圆点', !!d.querySelector('.ctrl-foot .cc-dots i'));
     ck('快捷开关圆钮 4 个', d.querySelectorAll('#ctrl-grid .ctrl-quick .ctrl-tile').length === 4);
     ck('竖向滑条带填充变量', d.getElementById('brightness-row').className.indexOf('v') >= 0 &&
       d.getElementById('brightness-row').style.getPropertyValue('--pct') !== '');
