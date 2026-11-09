@@ -18,7 +18,25 @@ MUOS 的状态栏图标支持 **三套内置线条风格** 与 **用户自制图
 
 ---
 
-## 2. 图标包格式
+## 2. 内置开源风格包
+
+除自绘三套外，仓库还内置两套可直接切换的开源图标（`js/07-openpacks.js`，由 `tools/build-open-iconpacks.js` 生成）：
+
+| 选项 | 来源 | 许可 | 图标数 | 说明 |
+| --- | --- | --- | --- | --- |
+| 开源 · Material Symbols | Google Material Design Icons | Apache-2.0 | 13 | 含 HD、5G 文字徽标；勿扰为「圆圈减号」 |
+| 开源 · Tabler Icons | tabler/tabler-icons | MIT | 11 | 2px 圆头线条；手电用 bulb 代替，勿扰为月亮 |
+
+- 缺项（如 Tabler 没有 `volte`/`nr5g`）自动回退系统素材，不会出现空图标。
+- 设置项值：`open:material` / `open:tabler`。
+- 授权细节见 `THIRD-PARTY.md`；自行重新生成：
+
+```bash
+npm install --no-save @material-design-icons/svg @tabler/icons
+node tools/build-open-iconpacks.js
+```
+
+## 3. 图标包格式
 
 一个 `.json` 文件：
 
@@ -71,7 +89,7 @@ MUOS 的状态栏图标支持 **三套内置线条风格** 与 **用户自制图
 
 ---
 
-## 3. 开源图标来源（可合法获取）
+## 4. 开源图标来源（可合法获取）
 
 | 项目 | 许可 | 规模 | 适配度 | 备注 |
 | --- | --- | --- | --- | --- |
@@ -97,7 +115,7 @@ MUOS 的状态栏图标支持 **三套内置线条风格** 与 **用户自制图
 
 ---
 
-## 4. 相关 API
+## 5. 相关 API
 
 ```js
 NM.importIconPack(obj)        // → id，失败抛 Error（格式错误 / 包为空 / 存储不足）

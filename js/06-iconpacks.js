@@ -114,6 +114,16 @@
       id = tp === 'oneui' ? 'builtin:oneui' : tp === 'classic' ? 'default' : 'builtin:hyperos';
     }
     if (id.indexOf('builtin:') === 0) return builtinSvg(name, id.slice(8), opt);
+    /* 内置开源包（js/07-openpacks.js）：缺项回退系统素材 */
+    if (id.indexOf('open:') === 0) {
+      var op = (NM.OPEN_PACKS || {})[id.slice(5)];
+      if (op && op.icons && op.icons[name]) {
+        var s1 = op.icons[name];
+        var u1 = s1[tone] || s1.w || s1.b || '';
+        return u1 ? '<img class="sb-ico" src="' + u1 + '" alt="">' : '';
+      }
+      return baseSicon(name, tone, opt);
+    }
     if (id.indexOf('pack:') === 0) {
       var pk = NM.findIconPack(id.slice(5));
       if (pk && pk.icons[name]) {

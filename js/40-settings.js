@@ -495,6 +495,11 @@
         { id: 'builtin:oneui', t: 'One UI 线条', s: '偏细的几何线条（三星规范）' },
         { id: 'builtin:originos', t: 'OriginOS 线条', s: '饱满笔画 · 圆润转角（vivo 规范）' }
       ];
+      (NM.OPEN_PACKS ? Object.keys(NM.OPEN_PACKS) : []).forEach(function (k) {
+        var op = NM.OPEN_PACKS[k];
+        list.push({ id: 'open:' + k, t: '开源 · ' + op.name,
+          s: op.license + ' · ' + (op.style || '') + ' · ' + Object.keys(op.icons).length + ' 个图标' });
+      });
       (NM.getIconPacks ? NM.getIconPacks() : []).forEach(function (p) {
         list.push({ id: 'pack:' + p.id, t: '导入包 · ' + p.name,
           s: (p.author ? p.author + ' · ' : '') + Object.keys(p.icons).length + ' 个图标',
@@ -524,7 +529,7 @@
         '<span class="row-main"><b>下载格式模板</b><small>导出示例 JSON，替换其中 dataURL 即可</small></span>' +
         '<span class="ip-side"><span class="ip-go">下载</span></span></div>' +
         '</div>' +
-        '<div class="set-note">图标包只保存在本机浏览器（localStorage），不上传任何服务器；第三方图标素材请确认其授权后再使用。</div>';
+        '<div class="set-note">图标包只保存在本机浏览器（localStorage），不上传任何服务器。内置开源素材：Material Symbols（Apache-2.0）、Tabler Icons（MIT），来源与许可见 ICON-PACK.md。</div>';
     },
     /* MUOS 账户中心：点设置首页顶部卡片进入，个人资料与退出登录在资料子页，本机信息收纳在这里 */
     account: function (v) { return accountPage(v); },

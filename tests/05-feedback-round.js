@@ -416,6 +416,14 @@ setTimeout(async () => {
     S.settings.iconPack = 'builtin:originos'; const gV = NM.sicon('wifi', 'w');
     S.settings.iconPack = 'builtin:hyperos';
     ck('三套内置风格线宽不同', gH !== gO && gO !== gV && gH !== gV);
+    /* 内置开源包（Material / Tabler） */
+    ck('内置开源包已注册', !!(NM.OPEN_PACKS && NM.OPEN_PACKS.material && NM.OPEN_PACKS.tabler));
+    S.settings.iconPack = 'open:material'; NM.renderStatusBarIcons();
+    const opImg = d.querySelector('#sb-icons img.sb-ico');
+    ck('开源包输出 SVG 位图', !!opImg && opImg.getAttribute('src').indexOf('data:image/svg+xml') === 0);
+    S.settings.iconPack = 'open:tabler';
+    ck('开源包缺项回退系统素材', NM.sicon('volte', 'w').indexOf('image/png') > 0);
+    S.settings.iconPack = 'builtin:hyperos';
     /* 导入自定义包 */
     const id = NM.importIconPack({ name: '测试包', icons: { wifi: { w: PNG, b: PNG } } });
     ck('可导入自定义图标包', !!id && NM.findIconPack(id) !== null);
@@ -427,7 +435,8 @@ setTimeout(async () => {
     NM.launchApp('settings'); NM.push('settings', 'iconPacks');
     const txt = d.getElementById('view-settings').textContent;
     ck('设置页列出图标包选项', txt.indexOf('HyperOS 线条') >= 0 && txt.indexOf('One UI 线条') >= 0 &&
-      txt.indexOf('OriginOS 线条') >= 0 && txt.indexOf('导入包 · 测试包') >= 0);
+      txt.indexOf('OriginOS 线条') >= 0 && txt.indexOf('开源 · Material Symbols') >= 0 &&
+      txt.indexOf('导入包 · 测试包') >= 0);
     ck('当前包标记「使用中」', txt.indexOf('使用中') >= 0);
     /* 删除后回落到默认 */
     NM.deleteIconPack(id);
