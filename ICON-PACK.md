@@ -115,7 +115,21 @@ node tools/build-open-iconpacks.js
 
 ---
 
-## 5. 相关 API
+## 5. 本机转换 One UI 素材（Asset Studio）
+
+从 [OneUIProject/oneui-icons](https://github.com/OneUIProject/oneui-icons) 下载 `material.zip`（957 个 `oui_*` VectorDrawable），解压后：
+
+```bash
+node tools/convert-oneui-pack.js <解压目录>/materialicons open-iconpacks/oneui.json
+```
+
+- 产物 `open-iconpacks/oneui.json`（约 39 KB，10 个图标：wifi / bt / battery / charging / alarm / dnd / torch / airplane / gps / nfc）。
+- 该包没有 `signal / hd / volte / nr5g`，这些位置自动回退内置图标。
+- 导入方式：**设置 → 系统风格 → 图标包 → 导入图标包**，选这个 JSON 即可（会立即启用）。
+- **转换坑位**：Android 颜色是 `#AARRGGBB`，`#00000000` 表示全透明。若把它当成实色，电池、勿扰、NFC 会被填成实心块（脚本已处理）。
+- **授权**：素材源自三星应用内资源，仅建议个人自用；`open-iconpacks/` 已在 `.gitignore` 中，不随仓库分发。
+
+## 6. 相关 API
 
 ```js
 NM.importIconPack(obj)        // → id，失败抛 Error（格式错误 / 包为空 / 存储不足）
