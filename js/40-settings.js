@@ -1021,6 +1021,34 @@
   /* ============================================================
      设置应用：覆盖 30-more-apps.js 里的旧版 7 分组设置
      ============================================================ */
+  /* ---------- 平板 / 横折叠内屏：设置双栏（左列表 · 右详情） ---------- */
+  function isSplitForm() {
+    var h = document.documentElement, f = h.getAttribute('data-form');
+    if (f === 'pad') return true;
+    /* fold 的 data-cover=0 表示已展开使用内屏 */
+    return f === 'fold' && h.getAttribute('data-cover') === '0';
+  }
+  /* 子页面 → 所属一级分类，用于左栏高亮 */
+  var PAGE_PARENT = {};
+  GROUPS.forEach(function (g) {
+    (g.rows || []).forEach(function (r) {
+      if (r && r.t === 'nav' && r.page) PAGE_PARENT[r.page] = g.k;
+    });
+  });
+  function splitNav(active) {
+    var cur = PAGE_PARENT[active] || active;
+    var groups = GROUPS.filter(function (g) {
+      if (g.k === 'update' || g.k === 'about') return false;
+      return !g.hidden || S.settings.devOn;
+    });
+    return '<aside class="split-nav"><div class="split-head">设置</div>' +
+      groups.map(function (g) {
+        return '<button class="split-item' + (g.k === cur ? ' active' : '') +
+          '" data-a="set-root" data-v="' + g.k + '">' +
+          '<span class="si">' + svg(g.i, 16) + '</span><span>' + esc(g.t) + '</span></button>';
+      }).join('') + '</aside>';
+  }
+
   var pages = {};
   var pageTitles = { main: '设置', about: '关于本机' };
 
@@ -1042,13 +1070,13 @@
       ' · MUOS 4.0 · HyperOS 风格 · ' + (S.settings.accountLoggedIn ? '已登录本机账户' : '未登录账户') + '</small></div>' +
       svg('chevron', 16) + '</div>' +
       taskSectionHtml() +
-      '<div class="section-title">全部设置 · ' + groups.length + ' 项</div>' +
-      groups.map(function (g) {
+      (isSplitForm() ? '' : '<div class="section-title">全部设置 · ' + groups.length + ' 项</div>') +
+      (isSplitForm() ? '' : groups.map(function (g) {
         return '<div class="set-row nav-row" data-a="set-jump" data-v="' + g.k + '">' +
           '<span class="set-ic">' + svg(g.i, 18) + '</span>' +
           '<span class="row-main"><b>' + esc(g.t) + '</b><small>' + esc(g.s) + '</small></span>' +
           svg('chevron', 16) + '</div>';
-      }).join('') +
+      }).join('')) +
       '<div class="set-note" style="margin-top:16px">所有设置都会立即生效并保存在本机浏览器。纯前端模拟，不访问任何真实硬件或数据。</div>' +
       '</div>' + NM.endBar();
   };
@@ -1069,7 +1097,20 @@
   });
   pages.about = function (v) { return NM.aboutHTML(v); };
 
+  /* 双栏包裹：仅在平板 / 折叠内屏生效，手机与外屏保持原样 */
+  var rawPages = {};
+  Object.keys(pages).forEach(function (k) { rawPages[k] = pages[k]; });
+  Object.keys(pages).forEach(function (k) {
+    pages[k] = function (v, p) {
+      var out = rawPages[k](v, p);
+      if (!isSplitForm()) return out;
+      return '<div class="set-split">' + splitNav(k) +
+        '<div class="split-main">' + out + '</div></div>';
+    };
+  });
+
   var SUB_TITLES = {
+    fontsDetail: '字体样式和大小', iconPacks: '图标包', appIconPacks: '应用图标包',
     navDetail: '系统导航方式', taskShortcuts: '自定义快捷任务',
     account: 'MUSE 账户', accountLogin: '登录 MUSE 账户', accountProfile: '个人资料',
     dndDetail: '勿扰例外与安排', appNotif: '应用通知', hiddenApps: '隐藏的应用',
@@ -1540,6 +1581,7 @@
     pages: pages,
     actions: {
       'set-jump': function (v, k) { NM.push('settings', k); },
+      'set-root': function (v, k) { NM.setPage('settings', k); },
       'set-nav': function (v, k) { NM.push('settings', k); },
       'set-page': function (v, k) { NM.push('settings', k); },
       'set-tg': function (v, k) { NM.setToggle(k, v); },

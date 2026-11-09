@@ -530,6 +530,36 @@ setTimeout(async () => {
     S.settings.appIconPack = 'default'; NM.refreshAppIcons(); NM.goHome();
   });
 
+  /* ---------- 16. 平板 / 折叠内屏：设置双栏 ---------- */
+  safe('设置双栏', () => {
+    const h = d.documentElement;
+    h.setAttribute('data-form', 'pad'); h.setAttribute('data-cover', '0');
+    NM.launchApp('settings'); NM.setPage('settings', 'main');
+    ck('平板设置渲染双栏', !!d.querySelector('#view-settings .set-split'));
+    ck('左栏列出分类', d.querySelectorAll('#view-settings .split-nav .split-item').length >= 8);
+    ck('右栏保留标题栏', !!d.querySelector('#view-settings .split-main .app-bar'));
+    ck('右栏不重复分类列表', !d.querySelector('#view-settings #set-groups > .set-row'));
+    NM.setPage('settings', 'display');
+    ck('进入分组后左栏仍在', !!d.querySelector('#view-settings .split-nav') &&
+      !!d.querySelector('#view-settings .split-item.active'));
+    NM.push('settings', 'fontsDetail');
+    const act = d.querySelector('#view-settings .split-item.active');
+    ck('子页面高亮所属分类', !!act && act.textContent.indexOf('显示') >= 0, act ? act.textContent : '');
+    const ttl = d.querySelector('#view-settings .split-main .app-bar h1');
+    ck('双栏右栏标题正确', !!ttl && ttl.textContent.indexOf('字体样式和大小') >= 0, ttl ? ttl.textContent : '');
+    NM.pop('settings');
+    h.setAttribute('data-form', 'fold'); h.setAttribute('data-cover', '0');
+    NM.renderView(S.views.settings);
+    ck('横折叠内屏也是双栏', !!d.querySelector('#view-settings .set-split'));
+    h.setAttribute('data-cover', '1');
+    NM.renderView(S.views.settings);
+    ck('折叠外屏保持单栏', !d.querySelector('#view-settings .set-split'));
+    h.setAttribute('data-form', 'phone');
+    NM.renderView(S.views.settings);
+    ck('手机保持单栏', !d.querySelector('#view-settings .set-split'));
+    NM.setPage('settings', 'main'); NM.goHome();
+  });
+
   console.log('\n通过 ' + pass + '/' + (pass + fail));
   console.log('\n===== 运行时错误 (' + errs.length + ') =====');
   errs.slice(0, 12).forEach(e => console.log('  ' + e));
