@@ -495,6 +495,7 @@
     var nd = $('#notif-date'); if (nd) nd.textContent = fullDate(d);
     var cd = $('#ctrl-date'); if (cd) cd.textContent = fullDate(d);
     var ct = $('#cc-time'); if (ct) ct.textContent = t;
+    var pc = $('#pin-clock'); if (pc) pc.textContent = t;
     var cd2 = $('#cc-date'); if (cd2) cd2.textContent = fullDate(d);
     var wc = $('#widget-clock'); if (wc) wc.textContent = t;
     var wd = $('#widget-date'); if (wd) wd.textContent = dateCN(d);

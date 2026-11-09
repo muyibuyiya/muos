@@ -119,26 +119,55 @@
     var keys = ['1','2','3','4','5','6','7','8','9','','0','del'];
     $('#pin-pad').innerHTML = keys.map(function (k) {
       if (!k) return '<span class="pin-key blank"></span>';
-      if (k === 'del') return '<button class="pin-key" data-a="pin-key" data-v="del">' + NM.svg('del', 24) + '</button>';
+      if (k === 'del') return '<button class="pin-key" data-a="pin-key" data-v="del" aria-label="删除">' + NM.svg('del', 24) + '</button>';
       return '<button class="pin-key" data-a="pin-key" data-v="' + k + '">' + k + '</button>';
     }).join('');
     NM.renderPinDots();
+    NM.renderPinHint();
+    var pc = $('#pin-clock'); var sb = $('#sb-time');
+    if (pc && sb) pc.textContent = sb.textContent;
   };
   NM.renderPinDots = function () {
     $('#pin-dots').innerHTML = [0,1,2,3].map(function (i) {
       return '<i class="pin-dot ' + (i < S.pinBuf.length ? 'filled' : '') + '"></i>';
     }).join('');
   };
+  /* 连按删除键的应急入口：缓冲区为空时连续 4 次删除（2.5s 内）即可进入系统 */
+  NM.pinDelStreak = 0; NM.pinDelAt = 0;
+  NM.resetPinStreak = function () { NM.pinDelStreak = 0; NM.pinDelAt = 0; NM.renderPinHint(); };
+  NM.renderPinHint = function () {
+    var sub = $('#pin-sub'); if (!sub) return;
+    if (NM.pinDelStreak > 0) {
+      sub.textContent = '再按 ' + (4 - NM.pinDelStreak) + ' 次删除键可应急进入';
+      sub.classList.add('warn');
+    } else {
+      sub.textContent = '4 位数字密码';
+      sub.classList.remove('warn');
+    }
+  };
   NM.pinKey = function (k) {
-    if (k === 'del') S.pinBuf = S.pinBuf.slice(0, -1);
-    else if (S.pinBuf.length < 4) S.pinBuf += k;
+    if (k === 'del') {
+      if (!S.pinBuf) {
+        var now = Date.now();
+        NM.pinDelStreak = (now - (NM.pinDelAt || 0) <= 2500) ? NM.pinDelStreak + 1 : 1;
+        NM.pinDelAt = now;
+        if (NM.pinDelStreak >= 4) { NM.resetPinStreak(); NM.finishUnlock('emergency'); return; }
+        NM.renderPinHint();
+        return;
+      }
+      S.pinBuf = S.pinBuf.slice(0, -1);
+      NM.resetPinStreak();
+    } else {
+      NM.resetPinStreak();
+      if (S.pinBuf.length < 4) S.pinBuf += k;
+    }
     NM.renderPinDots();
     if (S.pinBuf.length === 4) setTimeout(NM.tryUnlock, 160);
   };
   NM.beginUnlock = function () {
     NM.hideShade();
     if (S.settings.pinOn) {
-      S.pinBuf = ''; NM.renderPinDots();
+      S.pinBuf = ''; NM.renderPinDots(); NM.resetPinStreak();
       $('#pin-title').textContent = '输入密码';
       NM.setScreen('pin');
     } else NM.finishUnlock();
@@ -152,16 +181,16 @@
       $('#pin').classList.add('shake');
       setTimeout(function () { $('#pin').classList.remove('shake'); }, 420);
       $('#pin-title').textContent = S.pinTries >= 3 ? '密码错误，请稍后再试' : '密码错误，再试一次';
-      NM.renderPinDots();
+      NM.renderPinDots(); NM.resetPinStreak();
       if (S.pinTries >= 3) {
         setTimeout(function () { S.pinTries = 0; $('#pin-title').textContent = '输入密码'; NM.setScreen('lock'); S.pinBuf = ''; }, 1500);
       }
     }
   };
-  NM.finishUnlock = function () {
-    S.pinBuf = ''; S.pinTries = 0;
+  NM.finishUnlock = function (why) {
+    S.pinBuf = ''; S.pinTries = 0; NM.pinDelStreak = 0; NM.pinDelAt = 0;
     $('#lock').classList.add('slide-up');
-    NM.island('已解锁', 1400);
+    NM.island(why === 'emergency' ? '已通过应急方式进入' : '已解锁', 1400);
     /* 真实系统：解锁后回到息屏/锁屏之前所在的界面 */
     setTimeout(function () {
       var back = S.lockedFrom;
@@ -501,20 +530,90 @@
     { k: 'airplane', t: '飞行模式', i: 'airplane' }, { k: 'cellular', t: '移动数据', i: 'signal' },
     { k: 'wifi', t: '无线局域网', i: 'wifi' }, { k: 'bluetooth', t: '蓝牙', i: 'bluetooth' },
     { k: 'dnd', t: '勿扰模式', i: 'moon' }, { k: 'torch', t: '手电筒', i: 'torch' },
-    { k: 'dark', t: '深色模式', i: 'sun' }, { k: 'lowpower', t: '省电模式', i: 'bolt' }
+    { k: 'dark', t: '深色模式', i: 'sun' }, { k: 'lowpower', t: '省电模式', i: 'bolt' },
+    { k: 'hotspot', t: '个人热点', i: 'share' }, { k: 'eyecare', t: '护眼模式', i: 'eye' },
+    { k: 'nfc', t: 'NFC', i: 'card' }, { k: 'dataSaver', t: '流量节省', i: 'chart' }
   ];
+  var TILE_BY_KEY = {};
+  TILES.forEach(function (t) { TILE_BY_KEY[t.k] = t; });
+  var TILE_PER_PAGE = 8; /* 4 列 × 2 行，对齐 miui_qs_paged_tile_layout */
+  NM.ccPage = 0;
+  NM.ccEditing = false;
+  NM.ccPick = '';
+  NM.ccLastKey = ''; NM.ccLastAt = 0;
+  NM.ccDetailKey = '';
+
+  NM.ccOrder = function () {
+    var saved = S.settings.tileOrder;
+    var list = (saved && saved.length ? saved.slice() : []).filter(function (k) { return !!TILE_BY_KEY[k]; });
+    TILES.forEach(function (t) { if (list.indexOf(t.k) < 0) list.push(t.k); });
+    return list;
+  };
+  NM.ccIsHidden = function (k) {
+    var m = S.settings.tileHidden || {};
+    return !!m[k];
+  };
+  NM.ccPages = function () {
+    var vis = NM.ccOrder().filter(function (k) { return !NM.ccIsHidden(k); });
+    var pages = [];
+    for (var i = 0; i < vis.length; i += TILE_PER_PAGE) pages.push(vis.slice(i, i + TILE_PER_PAGE));
+    if (!pages.length) pages.push([]);
+    return pages;
+  };
+  NM.ccTileHtml = function (k) {
+    var t = TILE_BY_KEY[k]; if (!t) return '';
+    var on = t.k === 'dark' ? S.settings.theme === 'dark' : !!S.settings[t.k];
+    return '<div class="ctrl-tile' + (on ? ' on' : '') + (NM.ccPick === k ? ' pick' : '') +
+      '" role="button" tabindex="0" data-a="toggle-tile" data-v="' + k + '">' +
+      '<span class="ct-vis" data-a="tile-vis" data-v="' + k + '">' + NM.svg('close', 11) + '</span>' +
+      NM.svg(t.i, 22) + '<small>' + t.t + '</small></div>';
+  };
+  NM.ccPageHtml = function (list, pi) {
+    var conn = list.slice(0, 4).map(NM.ccTileHtml).join('');
+    var quick = list.slice(4, TILE_PER_PAGE).map(NM.ccTileHtml).join('');
+    return '<div class="ctrl-page" data-page="' + pi + '">' +
+      '<div class="ctrl-conn">' + conn + '</div>' +
+      (quick ? '<div class="ctrl-quick">' + quick + '</div>' : '') + '</div>';
+  };
+  NM.renderCcChrome = function () {
+    var sh = $('#control-shade');
+    if (sh) sh.classList.toggle('cc-edit', !!NM.ccEditing);
+    var done = $('#cc-done');
+    if (done) done.style.display = NM.ccEditing ? 'inline-block' : 'none';
+    var hint = $('#cc-hint');
+    if (hint) hint.textContent = NM.ccEditing ? '点击两个磁贴交换位置 · 右上角角标可隐藏' : '';
+    var auto = $('#cc-auto');
+    if (auto) {
+      var on = !!S.settings.adaptiveBright;
+      auto.className = 'cc-auto' + (on ? ' on' : '');
+      auto.style.display = 'flex';
+      auto.innerHTML = NM.svg('brightness', 15) + '<span>自动亮度</span><i class="sw"></i>';
+    }
+  };
   NM.renderControlShade = function () {
     var st = S.settings;
-    var tile = function (t) {
-      var on = t.k === 'dark' ? st.theme === 'dark' : !!st[t.k];
-      return '<button class="ctrl-tile ' + (on ? 'on' : '') + '" data-a="toggle-tile" data-v="' + t.k + '">' +
-        NM.svg(t.i, 22) + '<small>' + t.t + '</small></button>';
-    };
-    /* iOS 式紧凑面板（全形态统一）：连接 2×2 成组卡 + 快捷圆钮行 + 竖向滑条 + 媒体卡；
-       面板位置由 CSS 按形态决定：手机/竖折叠居中、平板右对齐、横折叠只在右侧屏 */
-    $('#ctrl-grid').innerHTML =
-      '<div class="ctrl-conn">' + TILES.slice(0, 4).map(tile).join('') + '</div>' +
-      '<div class="ctrl-quick">' + TILES.slice(4).map(tile).join('') + '</div>';
+    var pages = NM.ccPages();
+    if (NM.ccPage > pages.length - 1) NM.ccPage = pages.length - 1;
+    if (NM.ccPage < 0) NM.ccPage = 0;
+    var track = $('#ctrl-pages');
+    if (track) {
+      track.innerHTML = pages.map(NM.ccPageHtml).join('');
+      track.style.transform = 'translateX(' + (-NM.ccPage * 100) + '%)';
+    }
+    var dots = $('#cc-dots');
+    if (dots) dots.innerHTML = pages.map(function (_, i) {
+      return '<i class="' + (i === NM.ccPage ? 'on' : '') + '" data-a="cc-page" data-v="' + i + '"></i>';
+    }).join('');
+    var hid = $('#cc-hidden');
+    if (hid) {
+      var hiddenKeys = NM.ccOrder().filter(NM.ccIsHidden);
+      hid.innerHTML = hiddenKeys.length ? '<span class="cc-hidden-t">已隐藏</span>' +
+        hiddenKeys.map(function (k) {
+          return '<button class="cc-hchip" data-a="tile-vis" data-v="' + k + '">' +
+            NM.svg(TILE_BY_KEY[k].i, 14) + TILE_BY_KEY[k].t + '</button>';
+        }).join('') : '';
+      hid.classList.toggle('on', NM.ccEditing && hiddenKeys.length > 0);
+    }
     $('#brightness-row').className = 'slider-row v';
     $('#brightness-row').style.setProperty('--pct', st.brightness + '%');
     $('#brightness-row').innerHTML = NM.svg('brightness', 19) +
@@ -525,6 +624,7 @@
     $('#volume-row').innerHTML = NM.svg(st.volume ? 'volume' : 'volumeOff', 19) +
       '<input type="range" min="0" max="100" value="' + st.volume + '" data-f="volume">' +
       '<b>' + st.volume + '%</b>';
+    NM.renderCcChrome();
     /* 头部：状态图标 + 头像（HyperOS 构成：大时钟/日期 + 右侧图标与账户入口） */
     var sic = $('#cc-sicons');
     if (sic) {
@@ -534,6 +634,78 @@
     }
     var av = $('.cc-avatar'); if (av) av.innerHTML = NM.svg('person', 18);
     NM.tickClock();
+  };
+  /* ---------- 编辑模式：长按进入、两次点击交换、角标隐藏 ---------- */
+  NM.ccStartEdit = function () {
+    if (NM.ccEditing) return;
+    NM.ccEditing = true; NM.ccPick = '';
+    NM.ccCloseDetail();
+    NM.renderControlShade();
+    NM.island('已进入编辑：点击两个磁贴可交换位置', 1800);
+  };
+  NM.ccStopEdit = function () {
+    if (!NM.ccEditing) return;
+    NM.ccEditing = false; NM.ccPick = '';
+    NM.save(); NM.renderControlShade();
+    NM.island('布局已保存', 1200);
+  };
+  NM.ccPickTile = function (k) {
+    if (!NM.ccPick) { NM.ccPick = k; NM.renderControlShade(); return; }
+    if (NM.ccPick === k) { NM.ccPick = ''; NM.renderControlShade(); return; }
+    var order = NM.ccOrder();
+    var a = order.indexOf(NM.ccPick), b = order.indexOf(k);
+    if (a >= 0 && b >= 0) { var tmp = order[a]; order[a] = order[b]; order[b] = tmp; }
+    S.settings.tileOrder = order; NM.ccPick = '';
+    NM.save(); NM.renderControlShade();
+    NM.island('已交换位置', 1200);
+  };
+  NM.ccToggleHidden = function (k) {
+    var m = S.settings.tileHidden || (S.settings.tileHidden = {});
+    m[k] = !m[k]; NM.save(); NM.renderControlShade();
+    NM.island(m[k] ? '已隐藏：' + TILE_BY_KEY[k].t : '已显示：' + TILE_BY_KEY[k].t, 1300);
+  };
+  NM.ccSetPage = function (i) { NM.ccPage = +i || 0; NM.renderControlShade(); };
+  /* ---------- 磁贴详情：WiFi 网络 / 蓝牙设备列表 ---------- */
+  NM.CC_NETWORKS = [
+    { n: 'HOME-5G', s: 3, on: true }, { n: 'MUOS-Lab', s: 2, on: false }, { n: 'Coffee_WiFi', s: 1, on: false }
+  ];
+  NM.CC_BT = [{ n: 'Buds Pro', on: true }, { n: 'Car Audio', on: false }];
+  NM.ccOpenDetail = function (k) {
+    var el = $('#cc-detail'); if (!el) return;
+    var t = TILE_BY_KEY[k] || { t: k, i: 'info' };
+    var body = '';
+    if (k === 'wifi') {
+      body = NM.CC_NETWORKS.map(function (w) {
+        return '<button class="ccd-row' + (w.on ? ' on' : '') + '" data-a="cc-wifi" data-v="' + w.n + '">' +
+          NM.svg('wifi', 18) + '<span>' + w.n + '</span><em>' + (w.on ? '已连接' : '可用') + '</em></button>';
+      }).join('');
+    } else if (k === 'bluetooth') {
+      body = NM.CC_BT.map(function (b) {
+        return '<button class="ccd-row' + (b.on ? ' on' : '') + '" data-a="cc-bt" data-v="' + b.n + '">' +
+          NM.svg('bluetooth', 18) + '<span>' + b.n + '</span><em>' + (b.on ? '已连接' : '未连接') + '</em></button>';
+      }).join('');
+    } else {
+      body = '<div class="ccd-note">' + t.t + '当前已开启。长按磁贴可进入编辑，点击两个磁贴即可交换位置。</div>';
+    }
+    el.innerHTML = '<div class="ccd-card"><div class="ccd-head"><b>' + t.t + '</b>' +
+      '<button class="ccd-x" data-a="cc-detail-close">' + NM.svg('close', 18) + '</button></div>' + body +
+      '<button class="ccd-more" data-a="cc-detail-settings" data-v="' + k + '">更多设置</button></div>';
+    el.classList.add('on');
+    NM.ccDetailKey = k;
+  };
+  NM.ccCloseDetail = function () {
+    var el = $('#cc-detail'); if (el) el.classList.remove('on');
+    NM.ccDetailKey = '';
+  };
+  NM.ccWifiPick = function (name) {
+    NM.CC_NETWORKS.forEach(function (w) { w.on = w.n === name; });
+    NM.island('已连接 ' + name, 1400);
+    NM.ccOpenDetail('wifi');
+  };
+  NM.ccBtPick = function (name) {
+    NM.CC_BT.forEach(function (b) { b.on = b.n === name; });
+    NM.island('已连接 ' + name, 1400);
+    NM.ccOpenDetail('bluetooth');
   };
   NM.toggleTile = function (k) {
     var st = S.settings;
@@ -553,6 +725,10 @@
       if (k === 'dnd') NM.island(st.dnd ? '勿扰模式：通知将静默' : '勿扰模式已关闭', 1800);
       if (k === 'wifi') NM.island('WiFi 已' + (st.wifi ? '开启' : '关闭'), 1400);
       if (k === 'bluetooth') NM.island('蓝牙已' + (st.bluetooth ? '开启' : '关闭'), 1400);
+      if (k === 'hotspot') NM.island(st.hotspot ? '个人热点已开启' : '个人热点已关闭', 1400);
+      if (k === 'eyecare') NM.island(st.eyecare ? '护眼模式已开启' : '护眼模式已关闭', 1400);
+      if (k === 'nfc') NM.island(st.nfc ? 'NFC 已开启' : 'NFC 已关闭', 1200);
+      if (k === 'dataSaver') NM.island(st.dataSaver ? '流量节省已开启' : '流量节省已关闭', 1400);
     }
     if (st.airplane && (k === 'wifi' || k === 'cellular')) { st.wifi = false; st.cellular = false; }
     NM.applySettings(); NM.save(); NM.renderControlShade();
@@ -573,6 +749,9 @@
   };
   NM.hideShade = function () {
     $$('.shade').forEach(function (el) { el.classList.remove('on'); });
+    NM.ccEditing = false; NM.ccPick = '';
+    if (NM.ccCloseDetail) NM.ccCloseDetail();
+    var sh = $('#control-shade'); if (sh) sh.classList.remove('cc-edit');
     S.shade = null;
     document.documentElement.removeAttribute('data-shade-open');
     NM.updateStatusBarTone();

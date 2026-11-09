@@ -233,7 +233,10 @@ setTimeout(async () => {
     NM.DEV.form = 'pad'; NM.DEV.orient = 'portrait'; NM.DEV.res = 'pad-qhd'; NM.applyDevice();
     NM.showShade('control');
     ck('连接类开关成组 ctrl-conn', !!d.querySelector('#ctrl-grid .ctrl-conn'));
-    ck('四列磁贴共 8 个', d.querySelectorAll('#ctrl-grid .ctrl-tile').length === 8);
+    ck('第一页四列磁贴共 8 个', d.querySelectorAll('#ctrl-pages .ctrl-page[data-page="0"] .ctrl-tile').length === 8);
+    ck('磁贴分为两页（4 列分页）', d.querySelectorAll('#ctrl-pages .ctrl-page').length === 2 &&
+      d.querySelectorAll('#ctrl-pages .ctrl-tile').length === 12);
+    ck('分页圆点 2 个', d.querySelectorAll('.cc-dots i[data-a="cc-page"]').length === 2);
     ck('头部为大时钟+日期', !!d.getElementById('cc-time') && d.getElementById('cc-time').textContent !== '--:--');
     ck('底部为分页圆点', !!d.querySelector('.ctrl-foot .cc-dots i'));
     ck('快捷开关圆钮 4 个', d.querySelectorAll('#ctrl-grid .ctrl-quick .ctrl-tile').length === 4);
@@ -243,7 +246,7 @@ setTimeout(async () => {
     ck('滑条只有一层填充（无渐变叠加）', html.indexOf('linear-gradient(to top,') < 0);
     ck('滑条图标随填充反色', html.indexOf('mix-blend-mode: difference') >= 0);
     ck('样式表无损坏的换行字面量', html.indexOf('`nhtml') < 0);
-    ck('滑块数值同样反色保证可读', /slider-row\.v b[\s\S]{0,200}mix-blend-mode: difference/.test(html));
+    ck('滑块数值同样反色保证可读', /slider-row\.v b[\s\S]{0,420}mix-blend-mode: difference/.test(html));
     ck('浅色磁贴用实底提升对比', html.indexOf('background: #f1f3fa') >= 0);
     ck('滑块拖动反馈 data-dragging', html.indexOf('[data-dragging]') >= 0 && html.indexOf("setAttribute('data-dragging'") >= 0);
     ck('下拉时状态栏磨砂标记', d.documentElement.getAttribute('data-shade-open') === 'control');
@@ -254,6 +257,59 @@ setTimeout(async () => {
     ck('手机形态同一面板风格', !!d.querySelector('#ctrl-grid .ctrl-conn') &&
       d.getElementById('brightness-row').className.indexOf('v') >= 0);
     NM.hideShade();
+  });
+
+  /* ---------- 5.10b 控制中心：分页 / 编辑 / 详情 / 自动亮度 ---------- */
+  safe('控制中心借鉴能力', () => {
+    S.settings.tileOrder = null; S.settings.tileHidden = {}; S.settings.adaptiveBright = false;
+    NM.ccPage = 0; NM.showShade('control');
+    NM.ccSetPage(1);
+    ck('滑动可翻到第二页', d.getElementById('ctrl-pages').style.transform === 'translateX(-100%)');
+    NM.ccSetPage(0);
+    ck('翻回第一页', d.getElementById('ctrl-pages').style.transform === 'translateX(0%)');
+    NM.ccStartEdit();
+    ck('长按进入编辑态', d.getElementById('control-shade').classList.contains('cc-edit'));
+    ck('编辑态出现完成按钮', d.getElementById('cc-done').style.display === 'inline-block');
+    ck('编辑态磁贴带隐藏角标', d.querySelectorAll('.ct-vis').length >= 8);
+    const first = NM.ccOrder()[0], second = NM.ccOrder()[1];
+    NM.ccPickTile(first); NM.ccPickTile(second);
+    ck('两次点击交换磁贴位置', NM.ccOrder()[0] === second && NM.ccOrder()[1] === first);
+    NM.ccToggleHidden('torch');
+    ck('可隐藏磁贴', NM.ccIsHidden('torch') && !!d.querySelector('.cc-hchip'));
+    NM.ccToggleHidden('torch');
+    NM.ccStopEdit();
+    ck('退出编辑态', !d.getElementById('control-shade').classList.contains('cc-edit'));
+    NM.ccOpenDetail('wifi');
+    ck('二次点击打开 WiFi 详情', d.getElementById('cc-detail').classList.contains('on') &&
+      d.querySelectorAll('.ccd-row').length >= 3);
+    NM.ccWifiPick('MUOS-Lab');
+    ck('详情内可切换网络', d.querySelector('.ccd-row.on span').textContent === 'MUOS-Lab');
+    NM.ccCloseDetail();
+    ck('详情可关闭', !d.getElementById('cc-detail').classList.contains('on'));
+    d.getElementById('cc-auto').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+    ck('自动亮度开关生效', !!S.settings.adaptiveBright && d.getElementById('cc-auto').classList.contains('on'));
+    S.settings.adaptiveBright = false; S.settings.tileOrder = null; NM.renderControlShade();
+    NM.hideShade();
+  });
+
+  /* ---------- 5.10c 锁屏密码：设置生效 + 连按四次删除应急进入 ---------- */
+  safe('锁屏密码与应急入口', () => {
+    ck('密码保存按钮走 ACTS 分发', html.indexOf('data-v="set-pin-save|"') >= 0);
+    S.settings.pin = '2468'; S.settings.pinOn = true; NM.save();
+    NM.beginUnlock();
+    ck('启用密码后进入 PIN 界面', S.screen === 'pin' && !!d.querySelector('#pin-pad .pin-key'));
+    ck('PIN 界面有紧急呼叫与取消', d.querySelectorAll('.pin-foot .pin-ghost').length === 2);
+    NM.pinKey('2'); NM.pinKey('4'); NM.pinKey('6'); NM.pinKey('8');
+    ck('输入密码已满 4 位', S.pinBuf === '2468');
+    NM.tryUnlock();
+    ck('正确密码通过校验（不再误判）', S.pinBuf === '' && S.pinTries === 0 &&
+      d.getElementById('lock').classList.contains('slide-up'));
+    S.settings.pin = '1314'; S.pinBuf = ''; S.pinTries = 0; NM.save();
+    NM.beginUnlock();
+    NM.pinKey('del');
+    ck('删除键提示应急剩余次数', d.getElementById('pin-sub').textContent.indexOf('再按 3 次') >= 0);
+    NM.pinKey('del'); NM.pinKey('del'); NM.pinKey('del');
+    ck('连按四次删除键应急进入', S.pinBuf === '' && d.getElementById('lock').classList.contains('slide-up'));
   });
 
   /* ---------- 5.11 角标移除 + 设置归位账户中心 ---------- */

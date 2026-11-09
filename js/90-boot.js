@@ -36,7 +36,35 @@
     'clear-notifs': function () { S.notifications = []; NM.renderNotifShade(); NM.renderLockNotifs(); NM.updateBadges(); NM.island('通知已清空', 1200); },
     'open-notif': function (v) { NM.openNotif(v); },
     'dismiss-notif': function (v, el, e) { e.stopPropagation(); NM.removeNotif(v); },
-    'toggle-tile': function (v) { NM.toggleTile(v); },
+    'toggle-tile': function (v) {
+      if (NM.ccSwiped) { NM.ccSwiped = false; return; }
+      if (NM.ccEditing) { NM.ccPickTile(v); return; }
+      /* 二次点击同一个磁贴 = 打开详情（HyperOS 的展开行为） */
+      var now = Date.now();
+      if (NM.ccLastKey === v && now - NM.ccLastAt < 700) {
+        NM.ccLastKey = ''; NM.ccLastAt = 0;
+        if (NM.ccIsHidden(v) === false) NM.ccOpenDetail(v);
+        return;
+      }
+      NM.ccLastKey = v; NM.ccLastAt = now;
+      NM.toggleTile(v);
+    },
+    'tile-vis': function (v) { NM.ccToggleHidden(v); },
+    'cc-done': function () { NM.ccStopEdit(); },
+    'cc-page': function (v) { NM.ccSetPage(v); },
+    'toggle-auto-bright': function () {
+      S.settings.adaptiveBright = !S.settings.adaptiveBright;
+      NM.applySettings(); NM.save();
+      if (S.shade === 'control') NM.renderControlShade();
+      NM.island(S.settings.adaptiveBright ? '自动亮度已开启' : '自动亮度已关闭', 1400);
+    },
+    'cc-detail-close': function () { NM.ccCloseDetail(); },
+    'cc-wifi': function (v) { NM.ccWifiPick(v); },
+    'cc-bt': function (v) { NM.ccBtPick(v); },
+    'cc-detail-settings': function () {
+      NM.ccCloseDetail(); NM.hideShade();
+      NM.launchApp('settings');
+    },
     'toggle-torch': function () {
       S.settings.torch = !S.settings.torch; NM.applySettings(); NM.save();
       if (S.shade === 'control') NM.renderControlShade();
@@ -51,7 +79,10 @@
     },
     'pin-from-dialog': function () { NM.closeDialog(); NM.beginUnlock(); },
     'pin-key': function (v) { NM.pinKey(v); },
-    'pin-cancel': function () { S.pinBuf = ''; NM.setScreen('lock'); },
+    'pin-cancel': function () { S.pinBuf = ''; NM.resetPinStreak(); NM.setScreen('lock'); },
+    'pin-emergency': function () {
+      NM.dialog('紧急呼叫', '模拟环境不会真的拨号。\n110 报警 · 120 急救 · 119 火警', [{ t: '知道了', a: 'close-dialog', primary: true }]);
+    },
     'kill-task': function (v, el, e) {
       e.stopPropagation();
       var card = el.closest('.recent-card');
@@ -210,9 +241,37 @@
     });
   })();
 
-  /* ============================================================
-     四、键盘：回车、ESC 返回、方向键、终端历史
-     ============================================================ */
+  /* 控制中心手势：磁贴长按进入编辑、页面横向滑动翻页 */
+  (function bindControlGestures() {
+    var holdTimer = 0, startX = 0, startY = 0, tracking = false;
+    document.addEventListener('pointerdown', function (e) {
+      if (S.shade !== 'control') return;
+      var tile = e.target.closest && e.target.closest('.ctrl-tile');
+      if (tile && !NM.ccEditing && !(e.target.closest && e.target.closest('.ct-vis'))) {
+        clearTimeout(holdTimer);
+        holdTimer = setTimeout(function () { holdTimer = 0; NM.ccStartEdit(); }, 550);
+      }
+      var grid = e.target.closest && e.target.closest('#ctrl-grid');
+      if (grid) { startX = e.clientX; startY = e.clientY; tracking = true; }
+    }, true);
+    document.addEventListener('pointermove', function (e) {
+      if (!tracking || NM.ccEditing) return;
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy) + 6) {
+        tracking = false;
+        clearTimeout(holdTimer); holdTimer = 0;
+        NM.ccSwiped = true;
+        NM.ccSetPage(NM.ccPage + (dx < 0 ? 1 : -1));
+        setTimeout(function () { NM.ccSwiped = false; }, 420);
+      }
+    }, true);
+    ['pointerup', 'pointercancel'].forEach(function (t) {
+      document.addEventListener(t, function () {
+        tracking = false;
+        clearTimeout(holdTimer); holdTimer = 0;
+      }, true);
+    });
+  })();
   document.addEventListener('keydown', function (e) {
     NM.markInput();
     var t = e.target;

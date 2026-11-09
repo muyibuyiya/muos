@@ -55,10 +55,17 @@
       <!-- PIN 解锁页 -->
       <section id="pin" class="layer">
         <div class="pin-ui">
-          <div class="pin-title" id="pin-title">输入密码</div>
+          <div class="pin-head">
+            <div class="pin-clock" id="pin-clock">--:--</div>
+            <div class="pin-title" id="pin-title">输入密码</div>
+            <div class="pin-sub" id="pin-sub">4 位数字密码</div>
+          </div>
           <div class="pin-dots" id="pin-dots"></div>
           <div class="pin-pad" id="pin-pad"></div>
-          <button class="pin-cancel" data-a="pin-cancel">取消</button>
+          <div class="pin-foot">
+            <button class="pin-ghost" data-a="pin-emergency">紧急呼叫</button>
+            <button class="pin-ghost" data-a="pin-cancel">取消</button>
+          </div>
         </div>
       </section>
 
@@ -122,12 +129,19 @@
               <button class="cc-avatar" data-a="open-settings" aria-label="设置"></button>
             </div>
           </div>
-          <div class="ctrl-grid" id="ctrl-grid"></div>
+          <div class="ctrl-grid" id="ctrl-grid"><div class="ctrl-pages" id="ctrl-pages"></div></div>
+          <div class="cc-hidden" id="cc-hidden"></div>
           <div class="ctrl-sliders">
             <div class="slider-row" id="brightness-row"></div>
             <div class="slider-row" id="volume-row"></div>
           </div>
-          <div class="ctrl-foot"><span class="cc-dots"><i class="on"></i><i></i></span></div>
+          <button class="cc-auto" id="cc-auto" data-a="toggle-auto-bright"></button>
+          <div class="ctrl-foot">
+            <span class="cc-hint" id="cc-hint"></span>
+            <span class="cc-dots" id="cc-dots"></span>
+            <button class="cc-done" id="cc-done" data-a="cc-done">完成</button>
+          </div>
+          <div class="cc-detail" id="cc-detail"></div>
         </div>
       </section>
 

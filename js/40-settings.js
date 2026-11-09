@@ -810,7 +810,7 @@
     return '<div class="card"><input data-f="set-pin" type="tel" maxlength="4" placeholder="输入 4 位新密码" ' +
       'value="' + esc(v.state.pinNew || '') + '" class="set-input">' +
       '<div style="font-size:11px;color:var(--muted);margin-top:10px">当前密码：' + esc(S.settings.pin) + '</div>' +
-      '<button class="pill-btn" style="margin-top:12px" data-a="set-pin-save">保存密码</button></div>';
+      '<button class="pill-btn" style="margin-top:12px" data-a="set-act" data-v="set-pin-save|">保存密码</button></div>';
   }
   function ownerField() {
     return '<div class="card"><div class="row-main"><b>锁屏机主信息</b><small>显示在锁屏底部</small></div>' +
@@ -1574,7 +1574,8 @@
     'set-pin-save': function (v) {
       var p = (v.state.pinNew || '').trim();
       if (!/^\d{4}$/.test(p)) { NM.island('请输入 4 位数字', 1600); return; }
-      S.settings.pin = p; v.state.pinNew = ''; NM.save(); NM.renderView(v); NM.island('锁屏密码已更新', 1600);
+      S.settings.pin = p; S.settings.pinOn = true; v.state.pinNew = '';
+      NM.save(); NM.renderView(v); NM.island('锁屏密码已更新并启用', 1600);
     },
     'do-clear-data': function () {
       var keep = ['desktop', 'widgets', 'usage', 'pageCount'];
