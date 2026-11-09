@@ -504,6 +504,8 @@ setTimeout(async () => {
     ck('面板有展开动画', css.indexOf('shadeChild') >= 0 && css.indexOf('.shade.on .shade-inner > *') >= 0);
     ck('浅色下控制中心面板本身为白半透', css.indexOf('html[data-theme="light"] #control-shade .shade-inner') >= 0);
     ck('滑条数值绝对定位避免被裁', css.indexOf('slider-row.v b { position: absolute') >= 0);
+    ck('下拉时状态栏不再画独立色带', /html\[data-shade-open\] #statusbar \{[^}]*background: none/.test(css) &&
+      css.indexOf('color-mix(in srgb, var(--accent) 30%, transparent)') < 0);
 
     NM.showShade('control');
     const row = d.getElementById('brightness-row');
