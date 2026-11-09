@@ -191,7 +191,7 @@
         row.style.setProperty('--pct', val + '%');
       }
       row.addEventListener('pointerdown', function (e) {
-        dragging = true; apply(e.clientY);
+        dragging = true; row.setAttribute('data-dragging', '1'); apply(e.clientY);
         try { row.setPointerCapture(e.pointerId); } catch (err) { }
         e.preventDefault(); e.stopPropagation();
       });
@@ -203,6 +203,7 @@
       ['pointerup', 'pointercancel'].forEach(function (t) {
         row.addEventListener(t, function (e) {
           dragging = false;
+          row.removeAttribute('data-dragging');
           try { row.releasePointerCapture(e.pointerId); } catch (err) { }
         });
       });

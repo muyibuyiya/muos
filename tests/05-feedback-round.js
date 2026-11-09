@@ -242,6 +242,10 @@ setTimeout(async () => {
     ck('控制中心无常驻媒体条', !d.getElementById('ctrl-now'));
     ck('滑条只有一层填充（无渐变叠加）', html.indexOf('linear-gradient(to top,') < 0);
     ck('滑条图标随填充反色', html.indexOf('mix-blend-mode: difference') >= 0);
+    ck('样式表无损坏的换行字面量', html.indexOf('`nhtml') < 0);
+    ck('滑块数值同样反色保证可读', /slider-row\.v b[\s\S]{0,200}mix-blend-mode: difference/.test(html));
+    ck('浅色磁贴用实底提升对比', html.indexOf('background: #f1f3fa') >= 0);
+    ck('滑块拖动反馈 data-dragging', html.indexOf('[data-dragging]') >= 0 && html.indexOf("setAttribute('data-dragging'") >= 0);
     ck('下拉时状态栏磨砂标记', d.documentElement.getAttribute('data-shade-open') === 'control');
     NM.hideShade();
     ck('收起后磨砂标记移除', !d.documentElement.hasAttribute('data-shade-open'));
@@ -510,7 +514,7 @@ setTimeout(async () => {
       css.indexOf('html[data-theme="light"] #control-shade .slider-row.v::after') >= 0);
     ck('面板有展开动画', css.indexOf('shadeChild') >= 0 && css.indexOf('.shade.on .shade-inner > *') >= 0);
     ck('浅色下控制中心面板本身为白半透', css.indexOf('html[data-theme="light"] #control-shade .shade-inner') >= 0);
-    ck('滑条数值绝对定位避免被裁', css.indexOf('slider-row.v b { position: absolute') >= 0);
+    ck('滑条数值绝对定位避免被裁', /slider-row\.v b \{\s*position: absolute/.test(css));
     ck('下拉时状态栏不再画独立色带', /html\[data-shade-open\] #statusbar \{[^}]*background: none/.test(css) &&
       css.indexOf('color-mix(in srgb, var(--accent) 30%, transparent)') < 0);
 
