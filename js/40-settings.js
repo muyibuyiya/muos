@@ -507,8 +507,8 @@
       ];
       (NM.OPEN_PACKS ? Object.keys(NM.OPEN_PACKS) : []).forEach(function (k) {
         var op = NM.OPEN_PACKS[k];
-        list.push({ id: 'open:' + k, t: '开源 · ' + op.name,
-          s: op.license + ' · ' + (op.style || '') + ' · ' + Object.keys(op.icons).length + ' 个图标' });
+        list.push({ id: 'open:' + k, t: (op.builtin ? '' : '开源 · ') + op.name,
+          s: (op.license ? op.license + ' · ' : '') + (op.style || '') + ' · ' + Object.keys(op.icons).length + ' 个图标' });
       });
       (NM.getIconPacks ? NM.getIconPacks() : []).forEach(function (p) {
         list.push({ id: 'pack:' + p.id, t: '导入包 · ' + p.name,

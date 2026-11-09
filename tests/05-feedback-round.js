@@ -688,6 +688,24 @@ setTimeout(async () => {
     S.settings.iconPack = 'auto'; S.settings.appIconPack = 'default';
   });
 
+  /* ---------- 5.13 HyperOS 图标包内置但不默认 ---------- */
+  safe('HyperOS 图标包内置且非默认', () => {
+    ck('内置状态栏包已注册', !!NM.OPEN_PACKS.hyperos &&
+      Object.keys(NM.OPEN_PACKS.hyperos.icons).length === 7);
+    ck('内置应用包已注册', !!NM.BUILTIN_APP_PACKS.hyperos &&
+      Object.keys(NM.BUILTIN_APP_PACKS.hyperos.apps).length === 12);
+    ck('默认仍是跟随系统风格', (S.settings.iconPack || 'auto') === 'auto' &&
+      (S.settings.appIconPack || 'default') === 'default');
+    NM.launchApp('settings');
+    NM.setPage('settings', 'iconPacks');
+    ck('设置里可选内置状态栏包', !!d.querySelector('[data-v="ip-use|open:hyperos"]'));
+    NM.setPage('settings', 'appIconPacks');
+    ck('设置里可选内置应用包', !!d.querySelector('[data-v="ap-use|builtin:hyperos"]'));
+    S.settings.iconPack = 'open:hyperos';
+    ck('选用后状态栏取真机图标', NM.sicon('wifi', 'w').indexOf('data:image/') >= 0);
+    S.settings.iconPack = 'auto'; S.settings.appIconPack = 'default';
+  });
+
   console.log('\n通过 ' + pass + '/' + (pass + fail));
   console.log('\n===== 运行时错误 (' + errs.length + ') =====');
   errs.slice(0, 12).forEach(e => console.log('  ' + e));

@@ -202,3 +202,15 @@ python tools/build-hyperos-packs.py
 ---
 
 **说明**：图标版权归小米科技所有，仅作个人学习与本地模拟器展示使用，不随产品分发用于商业用途。
+
+
+### 6.1 内置选项（非默认）
+
+两份包同时以 **内置** 形式编进 `js/09b-hyperos-packs.js`（构建时合并进 standalone）：
+
+- 状态栏包注册在 `NM.OPEN_PACKS["hyperos"]` → 设置值 `open:hyperos`
+- 应用包注册在 `NM.BUILTIN_APP_PACKS["hyperos"]` → 设置值 `builtin:hyperos`
+
+**默认值没有改动**：`iconPack` 仍是 `auto`（跟随系统风格），`appIconPack` 仍是 `default`。用户需要在「设置 → 系统风格 → 图标包 / 应用图标包」里手动选择。
+
+体积影响：`09b-hyperos-packs.js` 约 737 KB，standalone 从 937 KB 增至约 1.69 MB。用 `tools/embed-hyperos-packs.py` 从 `packs/*.json` 重新生成（改了 `tools/build-hyperos-packs.py` 的映射后跑一遍即可）。
