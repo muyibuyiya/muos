@@ -961,6 +961,20 @@ html[data-form="flip"] .app-icon .ic-box { width: 52px; height: 52px; }
 .row-main small { display: block; font-size: 10.5px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
 .nav-row { cursor: pointer; }
 .nav-row:active { transform: scale(.985); }
+/* 图标包列表（设置 → 系统风格 → 图标包） */
+.icon-pack-row { cursor: pointer; }
+.icon-pack-row:active { transform: scale(.985); }
+.icon-pack-row.sel { border-color: var(--accent); }
+.icon-pack-row.sel .row-main b { color: var(--accent); }
+.ip-side { display: flex; align-items: center; gap: 8px; flex: none; }
+.ip-cur { font-size: 10.5px; color: var(--accent); font-weight: 600; }
+.ip-go { font-size: 11px; color: var(--accent); padding: 5px 10px; border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.ip-del { font-size: 10.5px; color: var(--danger); padding: 4px 8px; border-radius: 9px;
+  background: color-mix(in srgb, var(--danger) 14%, transparent); }
+.ip-preview { display: flex; align-items: center; gap: 15px; padding: 13px 16px; }
+.ip-preview .ip-pv { display: inline-flex; align-items: center; justify-content: center; color: var(--text); }
+.ip-preview svg.sb-ico, .ip-preview img.sb-ico { width: 20px; height: 20px; }
 .nav-row.danger b { color: var(--danger); }
 .set-block { padding: 13px 14px; margin-bottom: 7px; border-radius: 16px; background: var(--surface); border: 1px solid var(--stroke); }
 .set-note { font-size: 10.5px; line-height: 1.75; color: var(--muted); padding: 8px 6px; }
@@ -1865,6 +1879,7 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
 
 
 
+
 <script>
 /* ==== 00-core.js ==== */
 /* ============================================================
@@ -2094,7 +2109,7 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
     privacyDisplay: false, privacyAuto: false, privacyMax: false, privacyPin: false,
     /* 壁纸与风格 / 主题 */
     wall: 'hyper', palette: 'blue', paletteIcons: false, lockWallSame: true,
-    dynamicLock: false, themePack: 'hyperos', iconShape: 'squircle',
+    dynamicLock: false, themePack: 'hyperos', iconShape: 'squircle', iconPack: 'auto',
     /* 主屏幕 */
     swipeSearch: true, homeLayout: 'both', homeGrid: '4x6', appGrid: '4x6',
     folderGrid: '3x3', swipeUpDrawer: true, addNewApps: true,
@@ -2472,6 +2487,135 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
 })(window);
 
 
+/* ==== 06-iconpacks.js ==== */
+/* ============================================================
+   MUOS — 06-iconpacks.js
+   图标包系统（叠加在 05-staticons.js 的雪碧图资源之上）
+   · 内置三套线条图标：HyperOS / One UI / OriginOS 风格（按规范绘制）
+   · 支持导入自定义图标包（JSON + PNG dataURL，仅存本机 localStorage）
+   · 图标颜色随状态栏明暗（currentColor），无需双色素材
+   ============================================================ */
+(function (W) {
+  'use strict';
+  var NM = W.NM, S = NM.S;
+  var KEY = 'muos-iconpacks-v1';
+  var baseSicon = NM.sicon || function () { return ''; };
+
+  /* ---------- 内置线条图标（24×24 网格，圆角描边，颜色继承文字色） ---------- */
+  var GLYPHS = {
+    wifi: '<path d="M3.2 9.2a14 14 0 0 1 17.6 0"/>' +
+      '<path d="M6.2 12.6a9.4 9.4 0 0 1 11.6 0"/>' +
+      '<path d="M9.2 15.9a4.6 4.6 0 0 1 5.6 0"/>' +
+      '<circle cx="12" cy="19.1" r="1.15" fill="currentColor" stroke="none"/>',
+    signal: '<rect x="3" y="14.2" width="3" height="6.3" rx="1"/>' +
+      '<rect x="8" y="10.6" width="3" height="9.9" rx="1"/>' +
+      '<rect x="13" y="7" width="3" height="13.5" rx="1"/>' +
+      '<rect x="18" y="3.4" width="3" height="17.1" rx="1" fill="currentColor" stroke="none"/>',
+    bt: '<path d="M8.2 7.4 15.8 16.6 12 20.4V3.6l3.8 3.8L8.2 16.6"/>',
+    dnd: '<path d="M20.2 14.9A8.6 8.6 0 0 1 9.1 3.8a8.6 8.6 0 1 0 11.1 11.1z" fill="currentColor" stroke="none"/>',
+    torch: '<path d="M9.2 3h5.6l.9 5.1-1.5 1.6V21h-2.4V9.7L10 8.1z"/>' +
+      '<path d="M10.6 6.4h2.8M10.6 3.9h2.8"/>',
+    alarm: '<circle cx="12" cy="13.6" r="7.1"/>' +
+      '<path d="M12 9.6v4.4l2.8 1.9M4.8 5.2 7.2 2.9M19.2 5.2 16.8 2.9"/>',
+    airplane: '<path d="M12 2.8c.95 0 1.5 1.15 1.5 2.5l-.2 4.3 6.9 3.3v2.1l-6.9-1.6-.3 4.2 2 1.6v1.4L12 20l-3 .6v-1.4l2-1.6-.3-4.2-6.9 1.6v-2.1l6.9-3.3-.2-4.3c0-1.35.55-2.5 1.5-2.5z" fill="currentColor" stroke="none"/>',
+    gps: '<path d="M12 21.2S5.2 15.2 5.2 9.8a6.8 6.8 0 1 1 13.6 0c0 5.4-6.8 11.4-6.8 11.4z"/>' +
+      '<circle cx="12" cy="9.8" r="2.5"/>',
+    charging: '<path d="M13.2 2 5.6 13.3h4.8L10.8 22l7.6-11.3h-4.8z" fill="currentColor" stroke="none"/>',
+    nfc: '<path d="M6.4 4.6a11.8 11.8 0 0 1 0 14.8"/>' +
+      '<path d="M10.2 7.3a7.6 7.6 0 0 1 0 9.4"/>' +
+      '<path d="M14 10a3.6 3.6 0 0 1 0 4"/>' +
+      '<circle cx="17.6" cy="12" r="1.15" fill="currentColor" stroke="none"/>'
+  };
+  /* 电池：轮廓 + 动态电量填充 + 正极 */
+  function batteryGlyph(level) {
+    var pct = Math.max(0, Math.min(100, level == null ? 100 : level)) / 100;
+    var w = 2.1 + pct * 12.3;
+    return '<rect x="2.4" y="7" width="17.2" height="10" rx="2.8"/>' +
+      '<rect x="21" y="10.2" width="1.7" height="3.6" rx="0.85" fill="currentColor" stroke="none"/>' +
+      (pct > 0 ? '<rect x="4.2" y="8.8" width="' + w.toFixed(2) + '" height="6.4" rx="1.4" fill="currentColor" stroke="none"/>' : '');
+  }
+  /* 文字型图标：HD / VoLTE / 5G */
+  function textGlyph(label, size) {
+    return '<rect x="2.4" y="6.6" width="19.2" height="10.8" rx="3"/>' +
+      '<text x="12" y="14.4" text-anchor="middle" font-size="' + size +
+      '" font-weight="700" fill="currentColor" stroke="none" font-family="inherit">' + label + '</text>';
+  }
+  var TEXTS = { hd: ['HD', 7.4], volte: ['VoLTE', 5.6], nr5g: ['5G', 8.2] };
+
+  /* 三套风格：仅线宽与转角参数不同（符合各自规范的视觉密度） */
+  var STYLES = {
+    hyperos: { w: 1.7, cap: 'round', join: 'round' },   /* 小米：中等线宽、全圆角 */
+    oneui: { w: 1.35, cap: 'round', join: 'round' },    /* 三星：更细的几何线条 */
+    originos: { w: 2.05, cap: 'round', join: 'round' }  /* vivo：更饱满的笔画 */
+  };
+  function builtinSvg(name, style, opt) {
+    var s = STYLES[style] || STYLES.hyperos;
+    var body = name === 'battery' ? batteryGlyph(opt && opt.level)
+      : (TEXTS[name] ? textGlyph(TEXTS[name][0], TEXTS[name][1]) : GLYPHS[name]);
+    if (!body) return '';
+    var vb = name === 'battery' ? '1.5 6 22 12' : '0 0 24 24';
+    return '<svg class="sb-ico" viewBox="' + vb + '" fill="none" stroke="currentColor" stroke-width="' +
+      s.w + '" stroke-linecap="' + s.cap + '" stroke-linejoin="' + s.join + '">' + body + '</svg>';
+  }
+
+  /* ---------- 自定义图标包（localStorage，仅本机） ---------- */
+  var packs = [];
+  try {
+    packs = JSON.parse(W.localStorage.getItem(KEY) || '[]');
+    if (!Array.isArray(packs)) packs = [];
+  } catch (e) { packs = []; }
+  NM.ICON_PACKS = packs;
+  function persist() {
+    try { W.localStorage.setItem(KEY, JSON.stringify(packs)); }
+    catch (e) { throw new Error('图标包过大，浏览器存储空间不足'); }
+  }
+  NM.getIconPacks = function () { return packs; };
+  NM.findIconPack = function (id) {
+    return packs.filter(function (p) { return p.id === id; })[0] || null;
+  };
+  NM.importIconPack = function (obj) {
+    if (!obj || typeof obj !== 'object' || !obj.icons || typeof obj.icons !== 'object')
+      throw new Error('格式不正确：需要 { name, icons: { 图标名: {w/b/c: dataURL} } }');
+    var keys = Object.keys(obj.icons);
+    if (!keys.length) throw new Error('图标包为空');
+    var id = 'p' + Date.now().toString(36);
+    packs.push({
+      id: id,
+      name: String(obj.name || '自定义图标包').slice(0, 40),
+      author: String(obj.author || '').slice(0, 40),
+      icons: obj.icons
+    });
+    persist();
+    return id;
+  };
+  NM.deleteIconPack = function (id) {
+    packs = packs.filter(function (p) { return p.id !== id; });
+    NM.ICON_PACKS = packs;
+    persist();
+    if ((S.settings.iconPack || '') === 'pack:' + id) S.settings.iconPack = 'auto';
+  };
+
+  /* ---------- 取图标：内置风格 / 导入包 / 默认雪碧图 ---------- */
+  NM.sicon = function (name, tone, opt) {
+    var id = S.settings.iconPack || 'auto';
+    /* auto：跟随界面风格（生命感美学 → HyperOS，清爽玻璃 → One UI，经典 → 系统素材） */
+    if (id === 'auto') {
+      var tp = S.settings.themePack || 'hyperos';
+      id = tp === 'oneui' ? 'builtin:oneui' : tp === 'classic' ? 'default' : 'builtin:hyperos';
+    }
+    if (id.indexOf('builtin:') === 0) return builtinSvg(name, id.slice(8), opt);
+    if (id.indexOf('pack:') === 0) {
+      var pk = NM.findIconPack(id.slice(5));
+      if (pk && pk.icons[name]) {
+        var set = pk.icons[name];
+        var url = set[tone] || set.w || set.b || set.c || '';
+        return url ? '<img class="sb-ico" src="' + url + '" alt="">' : '';
+      }
+    }
+    return baseSicon(name, tone, opt);
+  };
+})(window);
+
 /* ==== 10-system.js ==== */
 /* ============================================================
    MUOS — 10-system.js
@@ -2544,7 +2688,7 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
   NM.renderStatusBarIcons = function () {
     var st = S.settings, out = '';
     var tone = document.documentElement.getAttribute('data-sb') === 'dark' ? 'b' : 'w';
-    function ico(name) { return NM.sicon ? NM.sicon(name, tone) : ''; }
+    function ico(name, opt) { return NM.sicon ? NM.sicon(name, tone, opt) : ''; }
     /* 图标避让刘海 / 灵动岛：按剩余宽度决定最多显示几个；
        优先级：Wi‑Fi > 信号 > 蓝牙 > 闹钟 > 勿扰 > 手电筒，电池永远显示 */
     var h = document.documentElement;
@@ -2567,7 +2711,7 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
     out = opts.slice(0, cap).join('') +
       '<span class="battery-wrap">' +
       (S.charging ? (ico('charging') || '') : '') +
-      '<span class="battery-chip">' + (ico('battery') || '') + '<b>' + Math.round(S.battery) + '</b></span>' +
+      '<span class="battery-chip">' + (ico('battery', { level: S.battery }) || '') + '<b>' + Math.round(S.battery) + '</b></span>' +
       '</span>';
     var el = $('#sb-icons'); if (el) el.innerHTML = out;
     document.documentElement.setAttribute('data-charging', S.charging ? '1' : '0');
@@ -5370,6 +5514,8 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
       SEG('界面风格', '切换后立即改变圆角、玻璃质感与超级岛形态', 'themePack', [
         O('hyperos', '生命感美学'), O('oneui', '清爽玻璃'), O('classic', '经典 MUOS')]),
       TXT('MUOS 默认采用「生命感美学」风格：柔光玻璃、点按光效、可自由编排的桌面与超级岛。', ''),
+      H('图标'),
+      NAV('图标包', '状态栏图标绘制风格 · 导入自定义图标包', 'iconPacks'),
       H('已安装主题'),
       ACT('默认主题 · 柔光', '当前使用', 'theme-pick', 'default'),
       ACT('深色曜石', '切换到高对比深色', 'theme-pick', 'obsidian'),
@@ -5671,6 +5817,47 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
             '<span class="toggle ' + (on ? 'on' : '') + '" data-a="task-toggle-one" data-v="' + i + '"></span></div>';
         }).join('') + '</div>' +
         '<div class="set-note">关闭的入口只是不显示在首页，对应的设置分类依然可以从下方列表进入。</div>';
+    },
+    /* 图标包：状态栏图标风格（内置三套线条）＋ 导入自定义包 */
+    iconPacks: function (v) {
+      var cur = S.settings.iconPack || 'auto';
+      var list = [
+        { id: 'auto', t: '跟随系统风格', s: '生命感美学 → HyperOS / 清爽玻璃 → One UI / 经典 → 系统素材' },
+        { id: 'default', t: '默认（系统素材）', s: '随主题自动取色的默认图标' },
+        { id: 'builtin:hyperos', t: 'HyperOS 线条', s: '中等线宽 · 全圆角（小米规范）' },
+        { id: 'builtin:oneui', t: 'One UI 线条', s: '偏细的几何线条（三星规范）' },
+        { id: 'builtin:originos', t: 'OriginOS 线条', s: '饱满笔画 · 圆润转角（vivo 规范）' }
+      ];
+      (NM.getIconPacks ? NM.getIconPacks() : []).forEach(function (p) {
+        list.push({ id: 'pack:' + p.id, t: '导入包 · ' + p.name,
+          s: (p.author ? p.author + ' · ' : '') + Object.keys(p.icons).length + ' 个图标',
+          pid: p.id });
+      });
+      var rows = list.map(function (o) {
+        return '<div class="set-row icon-pack-row' + (cur === o.id ? ' sel' : '') + '"' +
+          ' data-a="set-act" data-v="ip-use|' + o.id + '">' +
+          '<span class="row-main"><b>' + esc(o.t) + '</b><small>' + esc(o.s) + '</small></span>' +
+          '<span class="ip-side">' +
+          (cur === o.id ? '<span class="ip-cur">使用中</span>' : '') +
+          (o.pid ? '<span class="ip-del" data-a="set-act" data-v="ip-del|' + o.pid + '">删除</span>' : '') +
+          '</span></div>';
+      }).join('');
+      var tone = document.documentElement.getAttribute('data-sb') === 'dark' ? 'b' : 'w';
+      var prev = ['wifi', 'signal', 'bt', 'battery', 'alarm', 'dnd', 'torch', 'gps'].map(function (n) {
+        return '<span class="ip-pv">' + (NM.sicon ? NM.sicon(n, tone, { level: S.battery }) : '') + '</span>';
+      }).join('');
+      return '<div class="card ip-preview">' + prev + '</div>' +
+        '<div class="set-note">线条图标会随状态栏明暗自动变色（currentColor），无需为浅色/深色各准备一套素材。</div>' +
+        '<div class="card">' + rows + '</div>' +
+        '<div class="card">' +
+        '<div class="set-row icon-pack-row" data-a="set-act" data-v="ip-import|">' +
+        '<span class="row-main"><b>导入图标包</b><small>选择 .json（name + icons，每个图标给 w / b 两种颜色）</small></span>' +
+        '<span class="ip-side"><span class="ip-go">选择文件</span></span></div>' +
+        '<div class="set-row icon-pack-row" data-a="set-act" data-v="ip-export|">' +
+        '<span class="row-main"><b>下载格式模板</b><small>导出示例 JSON，替换其中 dataURL 即可</small></span>' +
+        '<span class="ip-side"><span class="ip-go">下载</span></span></div>' +
+        '</div>' +
+        '<div class="set-note">图标包只保存在本机浏览器（localStorage），不上传任何服务器；第三方图标素材请确认其授权后再使用。</div>';
     },
     /* MUOS 账户中心：点设置首页顶部卡片进入，个人资料与退出登录在资料子页，本机信息收纳在这里 */
     account: function (v) { return accountPage(v); },
@@ -6314,6 +6501,8 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
       st.softGlass = false; st.tapGlow = false; st.dragGlow = false;
       st.iconShape = 'square'; st.wall = 'mono';
     }
+    /* 图标风格为「跟随系统风格」时，切主题要立刻重绘状态栏图标 */
+    if (NM.renderStatusBarIcons) NM.renderStatusBarIcons();
   }
   function trimTasks() {
     /* 后台任务不设上限：仅当用户显式设置了较小上限时才回收 */
@@ -6379,6 +6568,59 @@ html[data-form="pad"] .st-hscroll { gap: 14px; }
       S.settings.themePack = m.pack;
       S.settings.wall = m.wall; S.settings.palette = m.palette; S.settings.theme = m.theme;
       changed(v, '主题已切换 · ' + (val === 'obsidian' ? '深色曜石' : val === 'dawn' ? '晨曦渐变' : '默认柔光'));
+    },
+    /* ---------- 图标包 ---------- */
+    'ip-use': function (v, id) {
+      S.settings.iconPack = id || 'default';
+      NM.save();
+      if (NM.renderStatusBarIcons) NM.renderStatusBarIcons();
+      changed(v, '图标风格已应用');
+    },
+    'ip-del': function (v, id) {
+      NM.deleteIconPack(id);
+      if (NM.renderStatusBarIcons) NM.renderStatusBarIcons();
+      NM.save(); NM.island('已删除图标包', 1400); NM.renderView(v);
+    },
+    'ip-import': function (v) {
+      var inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = '.json,application/json';
+      inp.addEventListener('change', function () {
+        var f = inp.files && inp.files[0]; if (!f) return;
+        var fr = new FileReader();
+        fr.onload = function () {
+          try {
+            var id = NM.importIconPack(JSON.parse(String(fr.result)));
+            S.settings.iconPack = 'pack:' + id;
+            NM.save();
+            if (NM.renderStatusBarIcons) NM.renderStatusBarIcons();
+            NM.island('图标包已导入并启用', 1600);
+            NM.renderView(v);
+          } catch (e) {
+            NM.dialog('导入失败', String((e && e.message) || e),
+              [{ t: '好', a: 'close-dialog', primary: true }]);
+          }
+        };
+        fr.readAsText(f);
+      });
+      inp.click();
+    },
+    'ip-export': function () {
+      var sample = {
+        name: '我的图标包', author: '你的名字',
+        icons: {
+          wifi: {
+            w: 'data:image/png;base64,<白色 40px 透明 PNG>',
+            b: 'data:image/png;base64,<黑色 40px 透明 PNG>'
+          }
+        }
+      };
+      var blob = new Blob([JSON.stringify(sample, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'muos-iconpack-template.json';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      NM.island('模板已下载', 1400);
     },
     'open-home-editor': function (v) { NM.goHome(); setTimeout(function () { NM.openHomeEditor(); }, 60); },
     'reset-home': function (v) {
