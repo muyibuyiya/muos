@@ -177,3 +177,28 @@ NM.refreshAppIcons()         // 换包后重绘桌面 / Dock / 抽屉 / 侧边�
 ```
 
 设置项：`S.settings.iconPack` = `auto` | `default` | `builtin:<style>` | `pack:<id>`。
+
+## 6. HyperOS 4 真机图标包（packs/，已随仓库交付）
+
+从解包的小米 14 Pro（HyperOS 4 / OS4.0.7.0.XPACNXM）固件里直接提取，不是重绘：
+
+| 文件 | 内容 | 来源 |
+| --- | --- | --- |
+| `packs/hyperos-statusbar.json` | 7 个状态栏图标：wifi / signal / bt / alarm / airplane / dnd / torch | `MiuiSystemUI.apk` 的 `res/drawable`，矢量 → SVG（w/b 两色） |
+| `packs/hyperos-apps.json` | 12 个应用图标：settings / camera / phone / messages / contacts / files / photos / store / health / assistant / security / theme | 各系统 APK 的 `android:icon`；自适应图标按 background + foreground 合成 SVG，位图直接转 PNG |
+
+- 导入方式：**设置 → 系统风格 → 图标包 → 导入 JSON**（状态栏与应用图标包分别导入）
+- 状态栏包键名与 `NM.sicon()` 一致；缺项（如 battery/charging 需按电量动态绘制）自动回退内置实现
+- 重新生成：
+
+```bash
+# 需要解包目录：<work>/assets/out/system_ext/MiuiSystemUI.apk 与 <work>/_ex_apps/*.apk
+python tools/build-hyperos-packs.py
+# 可用 HYPEROS_WORK / HYPEROS_EX_APPS 指定其他位置
+```
+
+脚本同时把副本写到 `D:\hyperos\icons-out\`。
+
+---
+
+**说明**：图标版权归小米科技所有，仅作个人学习与本地模拟器展示使用，不随产品分发用于商业用途。

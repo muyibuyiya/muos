@@ -668,6 +668,26 @@ setTimeout(async () => {
     ck('未打开面板时可退回桌面', S.screen === 'home');
   });
 
+  /* ---------- 5.12 HyperOS 真机图标包 ---------- */
+  safe('HyperOS 真机图标包可导入', () => {
+    const sbPath = 'packs/hyperos-statusbar.json';
+    const apPath = 'packs/hyperos-apps.json';
+    ck('真机图标包文件存在', fs.existsSync(sbPath) && fs.existsSync(apPath));
+    const sb = JSON.parse(fs.readFileSync(sbPath, 'utf8'));
+    const ap = JSON.parse(fs.readFileSync(apPath, 'utf8'));
+    ck('状态栏包含 Wi‑Fi/信号/蓝牙/飞行/勿扰/手电筒/闹钟', ['wifi', 'signal', 'bt', 'airplane', 'dnd', 'torch', 'alarm']
+      .every(k => sb.icons[k] && /^data:image\//.test(sb.icons[k].w)));
+    ck('应用包覆盖主要系统应用', ['settings', 'camera', 'phone', 'messages', 'contacts', 'files', 'photos', 'store']
+      .every(k => ap.apps[k] && /^data:image\//.test(ap.apps[k].i.w)));
+    const pid = NM.importIconPack(sb);
+    S.settings.iconPack = 'pack:' + pid;
+    ck('选中图标包后状态栏取真机图标', NM.sicon('wifi', 'w').indexOf('data:image/') >= 0);
+    const aid = NM.importAppPack(ap);
+    S.settings.appIconPack = 'pack:' + aid;
+    ck('选中应用包后桌面图标取真机图标', NM.iconBox(NM.appById('settings'), 48).indexOf('data:image/') >= 0);
+    S.settings.iconPack = 'auto'; S.settings.appIconPack = 'default';
+  });
+
   console.log('\n通过 ' + pass + '/' + (pass + fail));
   console.log('\n===== 运行时错误 (' + errs.length + ') =====');
   errs.slice(0, 12).forEach(e => console.log('  ' + e));

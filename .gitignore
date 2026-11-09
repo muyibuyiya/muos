@@ -31,3 +31,6 @@ misans-vf-preview.html
 misans-vf-preview.png
 cc-preview.html
 cc-preview.png
+
+__pycache__/
+*.pyc
